@@ -225,6 +225,14 @@ if($sum_21ToAll > 0){
 	$Per{"21To22"}=sprintf("%.6f", $Count{"21To22"}/$sum_21ToAll);
 }
 
+my $sum_allTo22=$Count{"20To22"} + $Count{"20bTo22"} + $Count{"21To22"};
+($Per{"allTo22_20"}, $Per{"allTo22_20b"}, $Per{"allTo22_21"})= (0) x 3;
+if($sum_allTo22 > 0){
+	$Per{"allTo22_20"}=sprintf("%.6f", $Count{"20To22"}/$sum_allTo22);
+	$Per{"allTo22_20b"}=sprintf("%.6f", $Count{"20bTo22"}/$sum_allTo22);
+	$Per{"allTo22_21"}=sprintf("%.6f", $Count{"21To22"}/$sum_allTo22);
+}
+
 foreach my $junc_type (@Junc_type){
 	if($Junc{$junc_type}=~/NA/){
 		$Count{$junc_type}="NA";
@@ -232,27 +240,34 @@ foreach my $junc_type (@Junc_type){
 	}
 }
 
+$Per{"allTo22_20"}="NA" if $Count{"20To22"} eq "NA";
+$Per{"allTo22_20b"}="NA" if $Count{"20bTo22"} eq "NA";
+$Per{"allTo22_21"}="NA" if $Count{"21To22"} eq "NA";
+
 say join "\t",("Exon_Type","exon13-exon14","exon13-exon15","exon13-exon16","exon13-exon17",
 			   "exon14-exon15","exon14-exon16","exon14-exon17",
 			   "exon15-exon16","exon15-exon17",
 			   "exon16-exon17",
 			   "exon20-exon21","exon20-exon22",
 			   "exon20b-exon21","exon20b-exon22",
-			   "exon21-exon22");
+			   "exon21-exon22",
+			   "exon22Based-(exon20)", "exon22Based-(exon2b)", "exon22Based-(exon21)");
 say join "\t",("Reads_Count",$Count{"13To14"}, $Count{"13To15"}, $Count{"13To16"}, $Count{"13To17"},
 			   $Count{"14To15"}, $Count{"14To16"}, $Count{"14To17"},
 			   $Count{"15To16"}, $Count{"15To17"},
 			   $Count{"16To17"},
 			   $Count{"20To21"}, $Count{"20To22"},
 			   $Count{"20bTo21"}, $Count{"20bTo22"},
-			   $Count{"21To22"});
+			   $Count{"21To22"},
+			   $Count{"20To22"}, $Count{"20bTo22"}, $Count{"21To22"});
 say join "\t",("Percent",$Per{"13To14"}, $Per{"13To15"}, $Per{"13To16"}, $Per{"13To17"},
 			   $Per{"14To15"}, $Per{"14To16"}, $Per{"14To17"},
 			   $Per{"15To16"}, $Per{"15To17"},
 			   $Per{"16To17"},
 			   $Per{"20To21"}, $Per{"20To22"},
 			   $Per{"20bTo21"}, $Per{"20bTo22"},
-			   $Per{"21To22"});
+			   $Per{"21To22"},
+			   $Per{"allTo22_20"}, $Per{"allTo22_20b"}, $Per{"allTo22_21"});
 
 
 # Following calculate the percentage of each junction type (considering others)
@@ -341,6 +356,15 @@ if($Count2{"22ToOthers"} > 0){
 	$Per2{"22ToOthers"}=0;
 }
 
+my $sum2_allTo22=$Count2{"20To22"} + $Count2{"20bTo22"} + $Count2{"21To22"} + $Count2{"OthersTo22"};
+($Per2{"allTo22_20"}, $Per2{"allTo22_20b"}, $Per2{"allTo22_21"}, $Per2{"allTo22_others"})= (0) x 4;
+if($sum2_allTo22 > 0){
+	$Per2{"allTo22_20"}=sprintf("%.6f", $Count2{"20To22"}/$sum2_allTo22);
+	$Per2{"allTo22_20b"}=sprintf("%.6f", $Count2{"20bTo22"}/$sum2_allTo22);
+	$Per2{"allTo22_21"}=sprintf("%.6f", $Count2{"21To22"}/$sum2_allTo22);
+	$Per2{"allTo22_others"}=sprintf("%.6f", $Count2{"OthersTo22"}/$sum2_allTo22);
+}
+
 foreach my $junc_type (@Junc_type){
 	if($Junc{$junc_type}=~/NA/){
 		$Count2{$junc_type}="NA";
@@ -364,6 +388,11 @@ foreach my $number (@Number){
 	}
 }
 
+$Per2{"allTo22_20"}="NA" if $Count2{"20To22"} eq "NA";
+$Per2{"allTo22_20b"}="NA" if $Count2{"20bTo22"} eq "NA";
+$Per2{"allTo22_21"}="NA" if $Count2{"21To22"} eq "NA";
+$Per2{"allTo22_others"}="NA" if $Count2{"OthersTo22"} eq "NA";
+
 say STDERR join "\t",("Exon_Type","Others-exon13","exon13-exon14","exon13-exon15","exon13-exon16","exon13-exon17","exon13-Others",
 			   "Others-exon14","exon14-exon15","exon14-exon16","exon14-exon17","exon14-Others",
 			   "Others-exon15","exon15-exon16","exon15-exon17","exon15-Others",
@@ -372,7 +401,8 @@ say STDERR join "\t",("Exon_Type","Others-exon13","exon13-exon14","exon13-exon15
 			   "Others-exon20","exon20-exon21","exon20-exon22","exon20-Others",
 			   "Others-exon20b","exon20b-exon21","exon20b-exon22","exon20b-Others",
 			   "Others-exon21","exon21-exon22","exon21-Others",
-			   "Others-exon22","exon22-Others");
+			   "Others-exon22","exon22-Others",
+			   "exon22Based-(exon20)", "exon22Based-(exon20b)", "exon22Based-(exon21)", "exon22Based-(others)");
 say STDERR join "\t",("Reads_Count",$Count2{"OthersTo13"},$Count2{"13To14"}, $Count2{"13To15"}, $Count2{"13To16"}, $Count2{"13To17"},$Count2{"13ToOthers"},
 			   $Count2{"OthersTo14"},$Count2{"14To15"}, $Count2{"14To16"}, $Count2{"14To17"},$Count2{"14ToOthers"},
 			   $Count2{"OthersTo15"},$Count2{"15To16"}, $Count2{"15To17"},$Count2{"15ToOthers"},
@@ -381,7 +411,8 @@ say STDERR join "\t",("Reads_Count",$Count2{"OthersTo13"},$Count2{"13To14"}, $Co
 			   $Count2{"OthersTo20"},$Count2{"20To21"}, $Count2{"20To22"},$Count2{"20ToOthers"},
 			   $Count2{"OthersTo20b"},$Count2{"20bTo21"}, $Count2{"20bTo22"},$Count2{"20bToOthers"},
 			   $Count2{"OthersTo21"},$Count2{"21To22"},$Count2{"21ToOthers"},
-			   $Count2{"OthersTo22"},$Count2{"22ToOthers"});
+			   $Count2{"OthersTo22"},$Count2{"22ToOthers"},
+			   $Count2{"20To22"},$Count2{"20bTo22"},$Count2{"21To22"},$Count2{"OthersTo22"});
 say STDERR join "\t",("Percent",$Per2{"OthersTo13"},$Per2{"13To14"}, $Per2{"13To15"}, $Per2{"13To16"}, $Per2{"13To17"},$Per2{"13ToOthers"},
 			   $Per2{"OthersTo14"},$Per2{"14To15"}, $Per2{"14To16"}, $Per2{"14To17"},$Per2{"14ToOthers"},
 			   $Per2{"OthersTo15"},$Per2{"15To16"}, $Per2{"15To17"},$Per2{"15ToOthers"},
@@ -390,7 +421,8 @@ say STDERR join "\t",("Percent",$Per2{"OthersTo13"},$Per2{"13To14"}, $Per2{"13To
 			   $Per2{"OthersTo20"},$Per2{"20To21"}, $Per2{"20To22"},$Per2{"20ToOthers"},
 			   $Per2{"OthersTo20b"},$Per2{"20bTo21"}, $Per2{"20bTo22"},$Per2{"20bToOthers"},
 			   $Per2{"OthersTo21"},$Per2{"21To22"},$Per2{"21ToOthers"},
-			   $Per2{"OthersTo22"},$Per2{"22ToOthers"});
+			   $Per2{"OthersTo22"},$Per2{"22ToOthers"},
+			   $Per2{"allTo22_20"},$Per2{"allTo22_20b"},$Per2{"allTo22_21"},$Per2{"allTo22_others"});
 
 
 sub usage{
