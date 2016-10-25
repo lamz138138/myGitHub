@@ -214,6 +214,6 @@ ann_colors = list(Var1 = Var1, Var2=Var2)
 myColor=strsplit(myColor,",",fixed=T)
 jet.colors <- colorRampPalette(myColor[[1]])(100)
 pdf(myPdf)
-pheatmap(data,color=jet.colors, annotation = annotation, annotation_colors = ann_colors, scale=myScale, cluster_rows=myClusterRows, cluster_cols=myClusterCols, clustering_distance_rows=myClusterDisRows, clustering_distance_cols=myClusterDisCols,
+pheatmap(data,color=jet.colors, annotation = annotation, annotation_colors = ann_colors, scale=myScale, cluster_rows=as.logical(myClusterRows), cluster_cols=as.logical(myClusterCols), clustering_distance_rows=myClusterDisRows, clustering_distance_cols=myClusterDisCols,
 	clustering_method=myClusterDisMethod, treeheight_row=myTreeheightRow, treeheight_col=myTreeheightCol, show_rownames=as.logical(myShowRownames), show_colnames=as.logical(myShowColnames), display_numbers=myDispalyNumbers, width=myWidth, height=myHeight, main=myMain)
 
