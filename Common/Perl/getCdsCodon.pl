@@ -29,6 +29,8 @@ while(<IN>){
 	next if $cdsStartStat ne "cmpl" || $cdsEndStat ne "cmpl";
 	next if $chr ne $chr_input;
 	my $gpeData=join "\t",($name_1, $chr, $strand, $txStart, $txEnd, $cdsStart, $cdsEnd, $exonCount, $exonStarts, $exonEnds, $id, $name_2, $cdsStartStat, $cdsEndStat, $exonFrames);
+	my $temp_pos_left=$pos_left;
+	my $temp_pos_right=$pos_right;
 	if($pos_left >= $cdsEnd || $pos_right <= $cdsStart){
 		&outputWarnning(join "\t",($gpeData, $chr_input.":".$pos_left."-".$pos_right));
 	}else{
@@ -36,6 +38,35 @@ while(<IN>){
 		my @ExonEnds=split ",",$exonEnds;
 		my @ExonFrames=split ",",$exonFrames;
 		my ($index_left, $index_right, $index_cdsStart, $index_cdsEnd);
+		for(my $i=0; $i<$exonCount; $i++){
+			if(!defined $index_left){
+				if($pos_left<$ExonStarts[$i]){
+					$index_left=$i;
+					$pos_left=$ExonStarts[$i];
+				}elsif($pos_left >= $ExonStarts[$i] && $pos_left <= $ExonEnds[$i]){
+					$index_left=$i
+				}
+			}
+			if(!defined $index_right){
+				if($pos_right > $ExonStarts[$i] && $pos_right <= $ExonEnds[$i]){
+					$index_right=$i;
+				}elsif($i<$exonCount-1 && $pos_right > $ExonEnds[$i] && $pos_right <= $ExonStarts[$i+1]){
+					$index_right=$i;
+					$pos_right=$ExonEnds[$i];
+				}elsif($i==$exonCount-1 && $pos_right > $ExonEnds[$i]){
+					$index_right=$i;
+					$pos_right=$ExonEnds[$i];
+				}
+			}
+			$index_cdsStart=$i if $cdsStart >= $ExonStarts[$i] && $cdsStart <= $ExonEnds[$i];
+			$index_cdsEnd=$i if $cdsEnd >= $ExonStarts[$i] && $cdsEnd <= $ExonEnds[$i];
+			last if defined $index_left && defined $index_right && defined $index_cdsStart && defined $index_cdsEnd;
+		}
+		if($pos_left > $pos_right){
+			say STDERR "Warnning: this region is in intron:";
+			say STDERR join "\t",($gpeData, $chr.":".$temp_pos_left."-".$temp_pos_right);
+			last;
+		}
 		for(my $i=0; $i<$exonCount; $i++){
 			$index_left=$i if $pos_left >= $ExonStarts[$i] && $pos_left <= $ExonEnds[$i];
 			$index_right=$i if $pos_right >= $ExonStarts[$i] && $pos_right <= $ExonEnds[$i];
