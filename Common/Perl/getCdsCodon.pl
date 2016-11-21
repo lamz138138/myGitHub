@@ -115,7 +115,6 @@ sub outputWarnning{
 	my ($stringData)=@_;
 	say STDERR "Warnning: this region is outside of cds region:";
 	say STDERR $stringData;
-	last;
 }
 
 sub getPos{
