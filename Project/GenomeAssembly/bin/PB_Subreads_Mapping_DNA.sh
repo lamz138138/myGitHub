@@ -128,13 +128,13 @@ if [ ! -z $mappingref ]; then
     loadpulses "$workpath"/input.fofn "$workpath"/data/aligned_reads.cmp.h5 -metrics deletionqv,ipd,insertionqv,pulsewidth,qualityvalue,mergeqv,substitutionqv,deletiontag -byread
   else
     # b) split fofn (we can split reads_of_insert.fofn to different chunk and align, then merge these files)
-    # i) alignccs.plsfofn.scatter
+    # i) align.plsFofn.Scatter 
     total_lines=`cat "$workpath"/input.fofn | wc -l`
     for((i=0;i<$total_lines;i++))
       do
         awk -v chunknum=$chunknum -v i=$i "($total_lines-nr+1)%$chunknum==$i" "$workpath"/reads_of_insert.fofn > "$workpath"/input.chunk"$i"of"$chunknum".fofn
       done
-    # ii) alignccs_*of*
+    # ii) align_*of*
     ls "$workpath"/input.chunk*of*.fofn | while read file
       do
         i=$( echo $file | sed 's#.*input.##;s#of.*fofn##' )
@@ -142,7 +142,7 @@ if [ ! -z $mappingref ]; then
         loadchemistry.py $file "$workpath/data/aligned_reads.chunk"$i"of"$chunknum".cmp.h5"
 	loadpulses $file "$workpath/data/aligned_reads.chunk"$i"of"$chunknum".cmp.h5" -metrics deletionqv,ipd,insertionqv,pulsewidth,qualityvalue,mergeqv,substitutionqv,deletiontag -byread
       done
-    # iii) alignccs.cmph5.gather
+    # iii) align.cmpH5.Gather 
     assertcmph5nonempty.py --debug "$workparh"/data/aligned_reads.chunk*of"$chunknum".cmp.h5
     cmph5tools.py  merge --outfile="$workpath"/data/aligned_reads.cmp.h5 "$workpath"/data/aligned_reads.chunk*of"$chunknum".cmp.h5
 fi
