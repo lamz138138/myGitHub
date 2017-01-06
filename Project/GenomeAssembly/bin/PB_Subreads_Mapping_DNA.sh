@@ -105,7 +105,7 @@ cat "$workpath"/data/filtered_subreads.chunk*.fastq > "$workpath"/data/filtered_
 # 8) subreads.subreads.gather (merge chunk)
 cat "$workpath"/data/filtered_subreads.chunk*.fasta > "$workpath"/data/filtered_subreads.fasta
 
-# 3. p_filterreport 
+# 3. P_FilterReports
 # 1) subreadrpt && statsrpt && loadingrpt (background)
 # a) subreadrpt
 filter_subread.py --debug --report="$workpath"/results/filter_reports_filter_subread_stats.json --output="$workpath"/results "$workpath"/data/filtered_subread_summary.csv &
