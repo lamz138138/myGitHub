@@ -98,12 +98,12 @@ syncpermoviefofn.py --debug "$workPath"/data/filtered_regions.fofn "$workPath"/i
 mv "$workPath"/data/filtered_regions.fofn.tmp "$workPath"/data/filtered_regions.fofn
 # 5) filter.summary.gather (merge chunk)
 cat "$workPath"/data/filtered_summary.chunk*.csv > "$workPath"/data/filtered_summary.csv
-# 6) subreadsummary
+# 6) subreads.subreadfastq.gather (merge chunk, Background)
+cat "$workPath"/data/filtered_subreads.chunk*.fastq > "$workPath"/data/filtered_subreads.fastq &
+# 7) subreads.subreads.gather (merge chunk, Background)
+cat "$workPath"/data/filtered_subreads.chunk*.fasta > "$workPath"/data/filtered_subreads.fasta &
+# 8) subreadsummary
 filter_subread_summary.py "$workPath"/data/filtered_regions.fofn --output="$workPath"/data/filtered_subread_summary.csv --debug
-# 7) subreads.subreadfastq.gather (merge chunk)
-cat "$workPath"/data/filtered_subreads.chunk*.fastq > "$workPath"/data/filtered_subreads.fastq
-# 8) subreads.subreads.gather (merge chunk)
-cat "$workPath"/data/filtered_subreads.chunk*.fasta > "$workPath"/data/filtered_subreads.fasta
 
 # 3. P_FilterReports
 # 1) subreadrpt && statsrpt && loadingrpt (background)
