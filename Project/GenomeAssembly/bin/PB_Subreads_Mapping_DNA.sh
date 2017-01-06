@@ -89,117 +89,117 @@ ls "$workPath"/data/filtered_regions.chunk*.fofn | while read file
 ls "$workPath"/data/filtered_regions.chunk*.fofn | while read file
   do
     sample=$( echo $file | sed 's#filtered_regions.##;s#.fofn##' )
-    pls2fasta "$workPath"/input."$sample".fofn "$workPath"/data/filtered_subreads."$sample".fasta -trimbyregion -regiontable "$workpath"/data/filtered_regions."$sample".fofn
-    pls2fasta "$workpath"/input."$sample".fofn "$workpath"/data/filtered_subreads."$sample".fastq -trimbyregion -regiontable "$workpath"/data/filtered_regions."$sample".fofn -fastq
+    pls2fasta "$workPath"/input."$sample".fofn "$workPath"/data/filtered_subreads."$sample".fasta -trimbyregion -regiontable "$workPath"/data/filtered_regions."$sample".fofn
+    pls2fasta "$workPath"/input."$sample".fofn "$workPath"/data/filtered_subreads."$sample".fastq -trimbyregion -regiontable "$workPath"/data/filtered_regions."$sample".fofn -fastq
   done
 # 4) filter.rgnfofn.gather (merge chunk)
-cat "$workpath"/data/filtered_regions.chunk*.fofn > "$workpath"/data/filtered_regions.fofn
-syncpermoviefofn.py --debug "$workpath"/data/filtered_regions.fofn "$workpath"/input.fofn > "$workpath"/data/filtered_regions.fofn.tmp
-mv "$workpath"/data/filtered_regions.fofn.tmp "$workpath"/data/filtered_regions.fofn
+cat "$workPath"/data/filtered_regions.chunk*.fofn > "$workPath"/data/filtered_regions.fofn
+syncpermoviefofn.py --debug "$workPath"/data/filtered_regions.fofn "$workPath"/input.fofn > "$workPath"/data/filtered_regions.fofn.tmp
+mv "$workPath"/data/filtered_regions.fofn.tmp "$workPath"/data/filtered_regions.fofn
 # 5) filter.summary.gather (merge chunk)
-cat "$workpath"/data/filtered_summary.chunk*.csv > "$workpath"/data/filtered_summary.csv
+cat "$workPath"/data/filtered_summary.chunk*.csv > "$workPath"/data/filtered_summary.csv
 # 6) subreadsummary
-filter_subread_summary.py "$workpath"/data/filtered_regions.fofn --output="$workpath"/data/filtered_subread_summary.csv --debug
+filter_subread_summary.py "$workPath"/data/filtered_regions.fofn --output="$workPath"/data/filtered_subread_summary.csv --debug
 # 7) subreads.subreadfastq.gather (merge chunk)
-cat "$workpath"/data/filtered_subreads.chunk*.fastq > "$workpath"/data/filtered_subreads.fastq
+cat "$workPath"/data/filtered_subreads.chunk*.fastq > "$workPath"/data/filtered_subreads.fastq
 # 8) subreads.subreads.gather (merge chunk)
-cat "$workpath"/data/filtered_subreads.chunk*.fasta > "$workpath"/data/filtered_subreads.fasta
+cat "$workPath"/data/filtered_subreads.chunk*.fasta > "$workPath"/data/filtered_subreads.fasta
 
 # 3. P_FilterReports
 # 1) subreadrpt && statsrpt && loadingrpt (background)
 # a) subreadrpt
-filter_subread.py --debug --report="$workpath"/results/filter_reports_filter_subread_stats.json --output="$workpath"/results "$workpath"/data/filtered_subread_summary.csv &
-smrtreporter -basedir "$workpath"/results -headinclude "$workpath"/results/.martin_header.html --html -o filter_reports_filter_subread_stats.html -rules "$workpath"/results/.rules_filter_reports_filter_subread_stats.xml &
+filter_subread.py --debug --report="$workPath"/results/filter_reports_filter_subread_stats.json --output="$workPath"/results "$workPath"/data/filtered_subread_summary.csv &
+smrtreporter -basedir "$workPath"/results -headinclude "$workPath"/results/.martin_header.html --html -o filter_reports_filter_subread_stats.html -rules "$workPath"/results/.rules_filter_reports_filter_subread_stats.xml &
 # b) statsrpt
-filter_stats.py --debug --output="$workpath"/results --report="$workpath"/results/filter_reports_filter_stats.json "$workpath"/data/filtered_summary.csv &
-smrtreporter -basedir "$workpath"/results -headinclude "$workpath"/results/.martin_header.html --html -o filter_reports_filter_stats.html -rules "$workpath"/results/.rules_filter_reports_filter_stats.xml &
+filter_stats.py --debug --output="$workPath"/results --report="$workPath"/results/filter_reports_filter_stats.json "$workPath"/data/filtered_summary.csv &
+smrtreporter -basedir "$workPath"/results -headinclude "$workPath"/results/.martin_header.html --html -o filter_reports_filter_stats.html -rules "$workPath"/results/.rules_filter_reports_filter_stats.xml &
 # c) loadingrpt
-pbreport.py loading --debug "$workpath"/results filter_reports_loading.json "$workpath"/data/filtered_summary.csv &
-smrtreporter -basedir "$workpath"/results -headinclude "$workpath"/results/.martin_header.html --html -o filter_reports_loading.html -rules "$workpath"/results/.rules_filter_reports_loading.xml &
+pbreport.py loading --debug "$workPath"/results filter_reports_loading.json "$workPath"/data/filtered_summary.csv &
+smrtreporter -basedir "$workPath"/results -headinclude "$workPath"/results/.martin_header.html --html -o filter_reports_loading.html -rules "$workPath"/results/.rules_filter_reports_loading.xml &
 
-if [ ! -z $mappingref ]; then
+if [ ! -z $mappingRef ]; then
   # 4. p_mapping
-  # 1) align (referencepath in --algorithmoptions may have some problem)
-  if [ -z $splitchunk ]; then
+  # 1) align (referencePath in --algorithmoptions may have some problem)
+  if [ -z $splitChunk ]; then
     # a) don't split fofn
-    #pbalign "$workpath/input.fofn" "$referencepath" "$workpath/data/aligned_reads.cmp.h5" --seed=1 --minaccuracy=0.75 --minlength=50 --concordant --algorithmoptions="-usequality" --algorithmoptions=' -minmatch 12 -bestn 10 -minpctidentity 70.0 -sa /rd1/user/zhongxm/project/genome_assembly/tools/smrtanalysis_2.3/install/smrtanalysis_2.3.0.140936/common/references/lambda/sequence/lambda.fasta.sa' --hitpolicy=randombest --tmpdir="$workpath"/tmpdir --nproc="$threadnum" --regiontable="$workpath"/data/filtered_regions.fofn
-    pbalign "$workpath/input.fofn" "$referencepath" "$workpath/data/aligned_reads.cmp.h5" --seed=1 --minaccuracy=0.75 --minlength=50 --concordant --algorithmoptions="-usequality" --algorithmoptions=' -minmatch 12 -bestn 10 -minpctidentity 70.0 -sa $referencepath/sequence/*.fasta.sa' --hitpolicy=randombest --tmpdir="$workpath"/tmpdir --nproc="$threadnum" --regiontable="$workpath"/data/filtered_regions.fofn
-    loadchemistry.py "$workpath"/input.fofn "$workpath"/data/aligned_reads.cmp.h5
-    loadpulses "$workpath"/input.fofn "$workpath"/data/aligned_reads.cmp.h5 -metrics deletionqv,ipd,insertionqv,pulsewidth,qualityvalue,mergeqv,substitutionqv,deletiontag -byread
+    #pbalign "$workPath/input.fofn" "$referencePath" "$workPath/data/aligned_reads.cmp.h5" --seed=1 --minaccuracy=0.75 --minlength=50 --concordant --algorithmoptions="-usequality" --algorithmoptions=' -minmatch 12 -bestn 10 -minpctidentity 70.0 -sa /rd1/user/zhongxm/project/genome_assembly/tools/smrtanalysis_2.3/install/smrtanalysis_2.3.0.140936/common/references/lambda/sequence/lambda.fasta.sa' --hitpolicy=randombest --tmpdir="$workPath"/tmpdir --nproc="$threadNum" --regiontable="$workPath"/data/filtered_regions.fofn
+    pbalign "$workPath/input.fofn" "$referencePath" "$workPath/data/aligned_reads.cmp.h5" --seed=1 --minaccuracy=0.75 --minlength=50 --concordant --algorithmoptions="-usequality" --algorithmoptions=' -minmatch 12 -bestn 10 -minpctidentity 70.0 -sa $referencePath/sequence/*.fasta.sa' --hitpolicy=randombest --tmpdir="$workPath"/tmpdir --nproc="$threadNum" --regiontable="$workPath"/data/filtered_regions.fofn
+    loadchemistry.py "$workPath"/input.fofn "$workPath"/data/aligned_reads.cmp.h5
+    loadpulses "$workPath"/input.fofn "$workPath"/data/aligned_reads.cmp.h5 -metrics deletionqv,ipd,insertionqv,pulsewidth,qualityvalue,mergeqv,substitutionqv,deletiontag -byread
   else
     # b) split fofn (we can split reads_of_insert.fofn to different chunk and align, then merge these files)
     # i) align.plsFofn.Scatter 
-    total_lines=`cat "$workpath"/input.fofn | wc -l`
+    total_lines=`cat "$workPath"/input.fofn | wc -l`
     for((i=0;i<$total_lines;i++))
       do
-        awk -v chunknum=$chunknum -v i=$i "($total_lines-nr+1)%$chunknum==$i" "$workpath"/reads_of_insert.fofn > "$workpath"/input.chunk"$i"of"$chunknum".fofn
+        awk -v chunkNum=$chunkNum -v i=$i "($total_lines-nr+1)%$chunkNum==$i" "$workPath"/reads_of_insert.fofn > "$workPath"/input.chunk"$i"of"$chunkNum".fofn
       done
     # ii) align_*of*
-    ls "$workpath"/input.chunk*of*.fofn | while read file
+    ls "$workPath"/input.chunk*of*.fofn | while read file
       do
         i=$( echo $file | sed 's#.*input.##;s#of.*fofn##' )
-        pbalign $file "$referencepath" "$workpath/data/aligned_reads.chunk"$i"of"$chunknum".cmp.h5" --seed=1 --minaccuracy=0.75 --minlength=50 --concordant --algorithmoptions="-usequality" --algorithmoptions=' -minmatch 12 -bestn 10 -minpctidentity 70.0 -sareferencepath/sequence/*.fasta.sa' --hitpolicy=randombest --tmpdir="$workpath"/tmpdir --nproc="$threadnum" --regiontable="$workpath"/data/filtered_regions.chunk"$i"of"$chunknum".fofn
-        loadchemistry.py $file "$workpath/data/aligned_reads.chunk"$i"of"$chunknum".cmp.h5"
-	loadpulses $file "$workpath/data/aligned_reads.chunk"$i"of"$chunknum".cmp.h5" -metrics deletionqv,ipd,insertionqv,pulsewidth,qualityvalue,mergeqv,substitutionqv,deletiontag -byread
+        pbalign $file "$referencePath" "$workPath/data/aligned_reads.chunk"$i"of"$chunkNum".cmp.h5" --seed=1 --minaccuracy=0.75 --minlength=50 --concordant --algorithmoptions="-usequality" --algorithmoptions=' -minmatch 12 -bestn 10 -minpctidentity 70.0 -sareferencePath/sequence/*.fasta.sa' --hitpolicy=randombest --tmpdir="$workPath"/tmpdir --nproc="$threadNum" --regiontable="$workPath"/data/filtered_regions.chunk"$i"of"$chunkNum".fofn
+        loadchemistry.py $file "$workPath/data/aligned_reads.chunk"$i"of"$chunkNum".cmp.h5"
+	loadpulses $file "$workPath/data/aligned_reads.chunk"$i"of"$chunkNum".cmp.h5" -metrics deletionqv,ipd,insertionqv,pulsewidth,qualityvalue,mergeqv,substitutionqv,deletiontag -byread
       done
     # iii) align.cmpH5.Gather 
-    assertcmph5nonempty.py --debug "$workparh"/data/aligned_reads.chunk*of"$chunknum".cmp.h5
-    cmph5tools.py  merge --outfile="$workpath"/data/aligned_reads.cmp.h5 "$workpath"/data/aligned_reads.chunk*of"$chunknum".cmp.h5
+    assertcmph5nonempty.py --debug "$workParth"/data/aligned_reads.chunk*of"$chunkNum".cmp.h5
+    cmph5tools.py  merge --outfile="$workPath"/data/aligned_reads.cmp.h5 "$workPath"/data/aligned_reads.chunk*of"$chunkNum".cmp.h5
 fi
   # 2) sort
-  cmph5tools.py -vv sort --deep --inplace "$workpath"/data/aligned_reads.cmp.h5
+  cmph5tools.py -vv sort --deep --inplace "$workPath"/data/aligned_reads.cmp.h5
   # 3) repack (this part could be deleted)
-  h5repack -f gzip=1 "$workpath"/data/aligned_reads.cmp.h5 "$workpath"/data/aligned_reads.cmp.h5_tmp
-  mv "$workpath"/data/aligned_reads.cmp.h5_tmp "$workpath"/data/aligned_reads.cmp.h5
+  h5repack -f gzip=1 "$workPath"/data/aligned_reads.cmp.h5 "$workPath"/data/aligned_reads.cmp.h5_tmp
+  mv "$workPath"/data/aligned_reads.cmp.h5_tmp "$workPath"/data/aligned_reads.cmp.h5
   # 4) unmapped && sambam (background)
   # a) unmapped 
-  extractunmappedsubreads.py "$workpath"/data/filtered_subreads.fasta "$workpath"/data/aligned_reads.cmp.h5  > "$workpath"/data/unmappedsubreads.fasta &
+  extractunmappedsubreads.py "$workPath"/data/filtered_subreads.fasta "$workPath"/data/aligned_reads.cmp.h5  > "$workPath"/data/unmappedsubreads.fasta &
   # b) sambam 
-  (pbsamtools --bam --outfile "$workpath/data/aligned_reads.sam" --refrepos "$referencepath" --readgroup "movie" "$workpath/data/aligned_reads.cmp.h5" && rm "$workpath"/data/aligned_reads.sam) &
+  (pbsamtools --bam --outfile "$workPath/data/aligned_reads.sam" --refrepos "$referencePath" --readgroup "movie" "$workPath/data/aligned_reads.cmp.h5" && rm "$workPath"/data/aligned_reads.sam) &
   # 5) covgff
-  summarize_coverage.py --numregions=500 "$workpath"/data/aligned_reads.cmp.h5 "$workpath"/data/alignment_summary.gff
+  summarize_coverage.py --numregions=500 "$workPath"/data/aligned_reads.cmp.h5 "$workPath"/data/alignment_summary.gff
   # 6) gff2bed (background)
-  gfftobed.py --name=meancoverage --description="mean coverage of genome in fixed interval regions" coverage "$workpath"/data/alignment_summary.gff > "$workpath"/data/coverage.bed &
+  gfftobed.py --name=meancoverage --description="mean coverage of genome in fixed interval regions" coverage "$workPath"/data/alignment_summary.gff > "$workPath"/data/coverage.bed &
 
   # 5. p_mappingreports
   # 1) statsjsonreport && coveragejsonreport (background)
   # a) statsjsonreport
-  mapping_stats.py --debug --output="$workpath"/results --mode external --filtersummary="$workpath"/data/filtered_summary.csv "$workpath"/input.fofn "$workpath"/data/filtered_regions.fofn "$workpath"/data/aligned_reads.cmp.h5 "$workpath"/results/mapping_stats_report.json &
-  smrtreporter -basedir "$workpath"/results -headinclude "$workpath"/results/.martin_header.html --html -o mapping_stats_report.html -rules "$workpath"/results/.rules_mapping_stats_report.xml &
+  mapping_stats.py --debug --output="$workPath"/results --mode external --filtersummary="$workPath"/data/filtered_summary.csv "$workPath"/input.fofn "$workPath"/data/filtered_regions.fofn "$workPath"/data/aligned_reads.cmp.h5 "$workPath"/results/mapping_stats_report.json &
+  smrtreporter -basedir "$workPath"/results -headinclude "$workPath"/results/.martin_header.html --html -o mapping_stats_report.html -rules "$workPath"/results/.rules_mapping_stats_report.xml &
   # b) coveragejsonreport 
-  # referencepath may have some problem
-  #pbreport.py coverage --debug "$workpath"/results mapping_coverage_report.json '/rd1/user/zhongxm/project/genome_assembly/tools/smrtanalysis_2.3/install/smrtanalysis_2.3.0.140936/common/references/rhemac2' "$workpath"/data/alignment_summary.gff
-  pbreport.py coverage --debug "$workpath"/results mapping_coverage_report.json '$referencepath' "$workpath"/data/alignment_summary.gff &
-  smrtreporter -basedir "$workpath"/results -headinclude "$workpath"/results/.martin_header.html --html -o mapping_coverage_report.html -rules "$workpath"/results/.rules_mapping_coverage_report.xml &
+  # referencePath may have some problem
+  #pbreport.py coverage --debug "$workPath"/results mapping_coverage_report.json '/rd1/user/zhongxm/project/genome_assembly/tools/smrtanalysis_2.3/install/smrtanalysis_2.3.0.140936/common/references/rhemac2' "$workPath"/data/alignment_summary.gff
+  pbreport.py coverage --debug "$workPath"/results mapping_coverage_report.json '$referencePath' "$workPath"/data/alignment_summary.gff &
+  smrtreporter -basedir "$workPath"/results -headinclude "$workPath"/results/.martin_header.html --html -o mapping_coverage_report.html -rules "$workPath"/results/.rules_mapping_coverage_report.xml &
   
-  if [ ! -z $variantscall ]; then
+  if [ ! -z $variantsCall ]; then
     # 6. p_genomicconsensus
     # 1) writecontiglist
-    if [ -z $splitchunk ]; then
-      echo "ref000001" > "$workpath"/data/contig_ids.txt
+    if [ -z $splitChunk ]; then
+      echo "ref000001" > "$workPath"/data/contig_ids.txt
     else
-      [ -e "$workpath"/data/contig_ids.txt ] && rm "$workpath"/data/contig_ids.txt
-      for((i=1;i<=$chunknum;i++))
+      [ -e "$workPath"/data/contig_ids.txt ] && rm "$workPath"/data/contig_ids.txt
+      for((i=1;i<=$chunkNum;i++))
         do
-	  echo "ref0"$chunknum >>"$workpath"/data/contig_ids.txt
+	  echo "ref0"$chunkNum >>"$workPath"/data/contig_ids.txt
 	done
     fi
     # 2) callvariantswithconsensus
-    if [ -z $splitchunk ]; then
-      #variantcaller.py --skipunrecognizedcontigs -w "$workpath"/data/contig_ids.txt  -x 5 -q 40 -p "$seymour_home"/analysis/etc/algorithm_parameters/2015-11 -v -j31 --algorithm=quiver "$workpath"/data/aligned_reads.cmp.h5 -r '/rd1/user/zhongxm/project/genome_assembly/tools/smrtanalysis_2.3/install/smrtanalysis_2.3.0.140936/common/references/rhemac2/sequence/rhemac2.fasta' -o "$workpath"/data/variants.gff -o "$workpath"/data/consensus.fasta.gz -o "$workpath"/data/consensus.fastq.gz
-      variantcaller.py --skipunrecognizedcontigs -w "$workpath"/data/contig_ids.txt  -x 5 -q 40 -p "$seymour_home"/analysis/etc/algorithm_parameters/2015-11 -v -j "$threadnum" --algorithm=quiver "$workpath"/data/aligned_reads.cmp.h5 -r "$referencepath/sequence/rhemac2.fasta" -o "$workpath"/data/variants.gff -o "$workpath"/data/consensus.fasta.gz -o "$workpath"/data/consensus.fastq.gz
+    if [ -z $splitChunk ]; then
+      #variantcaller.py --skipunrecognizedcontigs -w "$workPath"/data/contig_ids.txt  -x 5 -q 40 -p "$seymour_home"/analysis/etc/algorithm_parameters/2015-11 -v -j31 --algorithm=quiver "$workPath"/data/aligned_reads.cmp.h5 -r '/rd1/user/zhongxm/project/genome_assembly/tools/smrtanalysis_2.3/install/smrtanalysis_2.3.0.140936/common/references/rhemac2/sequence/rhemac2.fasta' -o "$workPath"/data/variants.gff -o "$workPath"/data/consensus.fasta.gz -o "$workPath"/data/consensus.fastq.gz
+      variantcaller.py --skipunrecognizedcontigs -w "$workPath"/data/contig_ids.txt  -x 5 -q 40 -p "$seymour_home"/analysis/etc/algorithm_parameters/2015-11 -v -j "$threadNum" --algorithm=quiver "$workPath"/data/aligned_reads.cmp.h5 -r "$referencePath/sequence/rhemac2.fasta" -o "$workPath"/data/variants.gff -o "$workPath"/data/consensus.fasta.gz -o "$workPath"/data/consensus.fastq.gz
     else
       # i) callvariantswithconsensus.contig_list.scatter
-      total_lines=`cat "$workpath"/data/contig_ids.txt | wc -l`
+      total_lines=`cat "$workPath"/data/contig_ids.txt | wc -l`
       for((i=0;i<$total_lines;i++))
         do
-          awk -v chunknum=$chunknum -v i=$i "($total_lines-nr+1)%$chunknum==$i" "$workpath"/contig_ids.txt > "$workpath"/contig_ids.chunk"$i"of"$chunknum".txt
+          awk -v chunkNum=$chunkNum -v i=$i "($total_lines-nr+1)%$chunkNum==$i" "$workPath"/contig_ids.txt > "$workPath"/contig_ids.chunk"$i"of"$chunkNum".txt
         done
       # ii) callvariantswithconsensus_*of*
-      ls "$workpath"/data/contig_ids.chunk*of*.txt | while read file
+      ls "$workPath"/data/contig_ids.chunk*of*.txt | while read file
 	do
 	  sample=$( echo $file | sed 's#.*contig_ids.##;s#.txt##' )
-	  variantcaller.py --skipunrecognizedcontigs -w $file  -x 5 -q 40 -p "$seymour_home"/analysis/etc/algorithm_parameters/2015-11 -v -j "$threadnum" --algorithm=quiver "$workpath"/data/aligned_reads.cmp.h5 -r "$referencepath/sequence/rhemac2.fasta" -o "$workpath"/data/variants."$sample".gff -o "$workpath"/data/consensus."$sample".fasta.gz -o "$workpath"/data/consensus."$sample".fastq.gz
+	  variantcaller.py --skipunrecognizedcontigs -w $file  -x 5 -q 40 -p "$seymour_home"/analysis/etc/algorithm_parameters/2015-11 -v -j "$threadNum" --algorithm=quiver "$workPath"/data/aligned_reads.cmp.h5 -r "$referencePath/sequence/rhemac2.fasta" -o "$workPath"/data/variants."$sample".gff -o "$workPath"/data/consensus."$sample".fasta.gz -o "$workPath"/data/consensus."$sample".fastq.gz
 	done
       # iii) callvariantswithconsensus.consensusfasta.gather && callvariantswithconsensus.consensusfastq.gather (Background)
       (gunzip -c "$workPath"/data/consensus.chunk*of*.fasta.gz | gzip -c > "$workPath"/data/consensus.fasta.gz && gunzip -t "$workPath"/data/consensus.fasta.gz) & 
