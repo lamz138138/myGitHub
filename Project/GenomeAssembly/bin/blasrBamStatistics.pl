@@ -45,8 +45,9 @@ while(<IN>){
         my $myAS=&getTagValue("AS", $_);    #Alignment score
         my $myXL=&getTagValue("XL", $_);    #Alignment length
         my $myNM=&getTagValue("NM", $_);    #Number of mismatch
-        my $myXQ=&getTagValue("XQ", $_);    #Reads length
-        my ($myCoverage, $myIdentity, $mySimilarity, $myAccuracy)=&statisticsCaculation($matchs, $inserts, $indels, $myAS, $myXL, $myNM, $myXQ);
+        my $myYS=&getTagValue("YS", $_);    #First base of query subread in 0 based coordinate of zmw unrolled polymerase read
+        my $myYE=&getTagValue("YE", $_);    #Last base of query subread in 0 based coordinate of zmw unrolled polymerase read
+        my ($myCoverage, $myIdentity, $mySimilarity, $myAccuracy)=&statisticsCaculation($matchs, $inserts, $indels, $myAS, $myXL, $myNM, $myYS, $myYE);
         my $myVC="VC:f:".$myCoverage; #Value of coverage
         my $myVI="VI:f:".$myIdentity; #Value of identity
         my $myVS="VS:f:".$mySimilarity; #Value of similarity
@@ -129,8 +130,8 @@ sub valueSort{
 }
 
 sub statisticsCaculation{
-    my ($matchs, $inserts, $indels, $myAS, $myXL, $myNM, $myXQ)=@_;
-    my $coverage=sprintf("%.4f", $myXL/$myXQ);
+    my ($matchs, $inserts, $indels, $myAS, $myXL, $myNM, $myYS, $myYE)=@_;
+    my $coverage=sprintf("%.4f", $myXL/($myYE-$myYS));
     my $identiy=sprintf("%.4f", ($matchs+$inserts+$indels-$myNM)/$myXL);
     my $similarity=sprintf("%.4f", $matchs/$myXL);
     my $accuracy=sprintf("%.4f", ($matchs+$inserts+$indels-$myNM)/($myXL+$indels));
@@ -164,7 +165,6 @@ Usage: perl $scriptName *sorted.bam >OUTPUT
     AS:	Alignment score
     XL:	Alignment length
     NM:	Number of mismatch
-    XQ:	Reads length
     VC:	Value of coverage
     VI:	Value of identity
     VS:	Value of similarity
@@ -175,6 +175,8 @@ Usage: perl $scriptName *sorted.bam >OUTPUT
     SA:	Top three accuracy
     SL:	Top three align length
     LS:	Top three align score
+    YS: First base of query subread
+    YE: Last base of query subread
     LD:	Length different between longest and second one
 
     -h --help               Print this help information screen
