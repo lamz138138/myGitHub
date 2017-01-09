@@ -168,7 +168,7 @@ fi
   smrtreporter -basedir "$workPath"/results -headinclude "$workPath"/results/.martin_header.html --html -o mapping_stats_report.html -rules "$workPath"/results/.rules_mapping_stats_report.xml &
   # b) coveragejsonreport 
   # referencePath may have some problem
-  #pbreport.py coverage --debug "$workPath"/results mapping_coverage_report.json '/rd1/user/zhongxm/project/genome_assembly/tools/smrtanalysis_2.3/install/smrtanalysis_2.3.0.140936/common/references/rhemac2' "$workPath"/data/alignment_summary.gff
+  #pbreport.py coverage --debug "$workPath"/results mapping_coverage_report.json '/rd1/user/zhongxm/project/genome_assembly/tools/smrtanalysis_2.3/install/smrtanalysis_2.3.0.140936/common/references/rheMac2' "$workPath"/data/alignment_summary.gff
   pbreport.py coverage --debug "$workPath"/results mapping_coverage_report.json '$referencePath' "$workPath"/data/alignment_summary.gff &
   smrtreporter -basedir "$workPath"/results -headinclude "$workPath"/results/.martin_header.html --html -o mapping_coverage_report.html -rules "$workPath"/results/.rules_mapping_coverage_report.xml &
   
@@ -186,8 +186,8 @@ fi
     fi
     # 2) callvariantswithconsensus
     if [ -z $splitChunk ]; then
-      #variantcaller.py --skipunrecognizedcontigs -w "$workPath"/data/contig_ids.txt  -x 5 -q 40 -p "$seymour_home"/analysis/etc/algorithm_parameters/2015-11 -v -j31 --algorithm=quiver "$workPath"/data/aligned_reads.cmp.h5 -r '/rd1/user/zhongxm/project/genome_assembly/tools/smrtanalysis_2.3/install/smrtanalysis_2.3.0.140936/common/references/rhemac2/sequence/rhemac2.fasta' -o "$workPath"/data/variants.gff -o "$workPath"/data/consensus.fasta.gz -o "$workPath"/data/consensus.fastq.gz
-      variantcaller.py --skipunrecognizedcontigs -w "$workPath"/data/contig_ids.txt  -x 5 -q 40 -p "$seymour_home"/analysis/etc/algorithm_parameters/2015-11 -v -j "$threadNum" --algorithm=quiver "$workPath"/data/aligned_reads.cmp.h5 -r "$referencePath/sequence/rhemac2.fasta" -o "$workPath"/data/variants.gff -o "$workPath"/data/consensus.fasta.gz -o "$workPath"/data/consensus.fastq.gz
+      #variantcaller.py --skipunrecognizedcontigs -w "$workPath"/data/contig_ids.txt  -x 5 -q 40 -p "$seymour_home"/analysis/etc/algorithm_parameters/2015-11 -v -j31 --algorithm=quiver "$workPath"/data/aligned_reads.cmp.h5 -r '/rd1/user/zhongxm/project/genome_assembly/tools/smrtanalysis_2.3/install/smrtanalysis_2.3.0.140936/common/references/rheMac2/sequence/rheMac2.fasta' -o "$workPath"/data/variants.gff -o "$workPath"/data/consensus.fasta.gz -o "$workPath"/data/consensus.fastq.gz
+      variantcaller.py --skipunrecognizedcontigs -w "$workPath"/data/contig_ids.txt  -x 5 -q 40 -p "$seymour_home"/analysis/etc/algorithm_parameters/2015-11 -v -j "$threadNum" --algorithm=quiver "$workPath"/data/aligned_reads.cmp.h5 -r "$referencePath/sequence/rheMac2.fasta" -o "$workPath"/data/variants.gff -o "$workPath"/data/consensus.fasta.gz -o "$workPath"/data/consensus.fastq.gz
     else
       # i) callvariantswithconsensus.contig_list.scatter
       total_lines=`cat "$workPath"/data/contig_ids.txt | wc -l`
@@ -199,7 +199,7 @@ fi
       ls "$workPath"/data/contig_ids.chunk*of*.txt | while read file
 	do
 	  sample=$( echo $file | sed 's#.*contig_ids.##;s#.txt##' )
-	  variantcaller.py --skipunrecognizedcontigs -w $file  -x 5 -q 40 -p "$seymour_home"/analysis/etc/algorithm_parameters/2015-11 -v -j "$threadNum" --algorithm=quiver "$workPath"/data/aligned_reads.cmp.h5 -r "$referencePath/sequence/rhemac2.fasta" -o "$workPath"/data/variants."$sample".gff -o "$workPath"/data/consensus."$sample".fasta.gz -o "$workPath"/data/consensus."$sample".fastq.gz
+	  variantcaller.py --skipunrecognizedcontigs -w $file  -x 5 -q 40 -p "$seymour_home"/analysis/etc/algorithm_parameters/2015-11 -v -j "$threadNum" --algorithm=quiver "$workPath"/data/aligned_reads.cmp.h5 -r "$referencePath/sequence/rheMac2.fasta" -o "$workPath"/data/variants."$sample".gff -o "$workPath"/data/consensus."$sample".fasta.gz -o "$workPath"/data/consensus."$sample".fastq.gz
 	done
       # iii) callvariantswithconsensus.consensusfasta.gather && callvariantswithconsensus.consensusfastq.gather (Background)
       (gunzip -c "$workPath"/data/consensus.chunk*of*.fasta.gz | gzip -c > "$workPath"/data/consensus.fasta.gz && gunzip -t "$workPath"/data/consensus.fasta.gz) & 
