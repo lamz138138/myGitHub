@@ -168,6 +168,35 @@ cd $workPath/roi/demo
       done
     deactivate    
 
+  # 6) 90G data
+    mkdir /data7/lcy/zhongxm/PacBio/falcon/Stage_1 && cd /data7/lcy/zhongxm/PacBio/falcon/Stage_1
+    mkdir data && cd data
+    ln -s /data9/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016469/data/filtered_subreads.fasta CCS_Subreads_60G.fa
+    ln -s /data9/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016470/data/filtered_subreads.fasta CLR_Subreads_17G.fa
+    perl -e '
+    	my $myHandle="NA";
+    	open IN,$ARGV[0];
+	while(<IN>){
+		if(/^>/){
+			chomp;
+			my $fileName=(split "/",$_)[0];
+			if($fileName ne $myHandle){
+				close OUT if $myHandle ne "NA";
+				my $myHandle=$fileName;
+				open OUT, ">$myHandle".".fa";
+			}
+			print OUT $_;
+			print OUT "\n";
+		}else{
+			print OUT $_;
+		}
+	}' CLR_Subreads_17G.fa
+    cd ..
+    find "$PWD"/data/ -name "*.fasta" > input.fofn
+    cp /data7/lcy/zhongxm/PacBio/simulate4/30XCLR_RS+70XCLR_Sequel/falcon/fc_run.cfg .
+    fc_run.py fc_run.cfg >fc_run.log 2>fc_run.err
+
+
 #3. PBcR
   export pbcrPath=/data7/lcy/zhongxm/tools/wgs-8.3rc2/Linux-amd64/bin
   #export pbcrPath=/data7/lcy/zhongxm/tools/smrtanalysis/current/analysis/bin
@@ -266,6 +295,25 @@ cd $workPath/roi/demo
           export PATH=$( echo $PATH | sed "s#/data7/lcy/zhongxm/tools/java/bin:/data7/lcy/zhongxm/tools/wgs-8.3rc2/Linux-amd64/bin:##" ):$PATH
 	fi
       done
+  # 4) RS2_test
+    cd /data9/lcy01/zhongxm/PacBio/RS2_test/pbcr
+    ln -s /data9/lcy01/zhongxm/NGS/data/processed/fqTrimer/500_1.fq .
+    ln -s /data9/lcy01/zhongxm/NGS/data/processed/fqTrimer/500_2.fq .
+    ln -s /data7/lcy/zhongxm/PacBio/blasr/B05_1/filtered_subreads.fastq .
+    cp $workPath/pbcr/demo/sampleData/pacbio.spec 
+    $pbcrPath/fastqToCA -libraryname illumina -technology illumina -insertsize 150 40 -mates 500_1.fq,500_2.fq >illuminar.frg 2>fastqToCA.err
+    $pbcrPath/PBcR QV=51 assemble=0 -threads 20 merylMemory=24000 -length 500 -partitions 200 -l pbcr -s pacbio.spec -fastq filtered_subreads.fastq genomeSize=3000000000 illuminar.frg \
+    	>pbcr.log 2>pbcr.err
+    mkdir v2
+    cp /data7/lcy/zhongxm/PacBio/pbcr/pacbio.SGE.spec .
+    $pbcrPath/PBcR QV=51 assemble=0 -l pbcr -s pacbio.SGE.spec -fastq filtered_subreads.fastq genomeSize=3000000000 illuminar.frg >pbcr.log 2>pbcr.err
+  # 5) Stage_1 CLR
+    cd /data7/lcy/zhongxm/PacBio/pbcr/Stage_1
+    ln -s /data9/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016468/data/reads_of_insert.fastq CCS.fq
+    ln -s /data9/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016470/data/filtered_subreads.fasta CLR.fq
+    cp $workPath/pbcr/pacbio.SGE.spec .
+    $pbcrPath/fastqToCA -libraryname CCS -technology pacbio-ccs -reads CCS.fq >CCS.frg 2>fastqToCA.err
+    $pbcrPath/PBcR -length 500 -partitions 200 -l pbcr -s pacbio.SGE.spec -fastq CLR.fq genomeSize=3000000000 CCS.frg >pbcr.log 2>pbcr.err
 
   cd /data7/lcy/zhongxm/tools/smrtanalysis/current/analysis/lib
   mv libstdc++.so.6_v1 libstdc++.so.6
@@ -622,6 +670,7 @@ ln -s ~/ref/rheMac2.fa scf.fasta
 sawriter scf.fasta.sa scf.fasta >log/sawriter.log 2>log/sawriter.err
 cd ..
 # 2) Mapping
+# a) Single Data
 mkdir -p B05_1/log && cd B05_1
 ln -s /data7/lcy/zhongxm/tools/smrtanalysis/userdata/jobs/016/016443/data/filtered_subreads.fasta .
 ln -s /data7/lcy/zhongxm/tools/smrtanalysis/userdata/jobs/016/016443/data/filtered_subreads.fastq .
@@ -635,7 +684,7 @@ ln -s /data7/lcy/zhongxm/tools/smrtanalysis/userdata/jobs/016/016445/data/reads_
 for myData in B05_1 G12_1 H12_1
   do
     cd $myData
-    for type in filtered_subreads reads_of_insert
+    for type in filtered_subreads reads_of_insert sub_cor
       do
         sample="$myData""_""$type"
         blasr "$type".fasta ../sa/scf.fasta -sa ../sa/scf.fasta.sa -sam -clipping soft -out "$sample".sam -unaligned "$sample".unaligned -nproc 8 \
@@ -645,4 +694,26 @@ for myData in B05_1 G12_1 H12_1
 	samtools view -bh -q 30 "$sample".sorted.bam -o "$sample".q30.bam
 	samtools sort "$sample".q30.bam "$sample".q30.sorted
       done
+  done
+# b) RSII 60G data
+mkdir -p RSII/Stage_1/{CCS_60G,CLR_17G}
+mkdir -p RSII/Stage_1/CCS_60G/{Subreads,CCS}/log
+cd RSII/Stage_1/CCS_60G/CCS
+ln -s /data9/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016468/data/reads_of_insert.fasta CCS
+cd RSII/Stage_1/CCS_60G/Subreads
+ln -s /data9/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016469/data/filtered_subreads.fasta .
+cd RSII/Stage_1/CLR_17G/Subreads
+ln -s /data9/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016470/data/filtered_subreads.fasta .
+for type in Subreads CCS
+  do
+    if [ "$type" == "Subreads" ]; then
+      sample="subreads"
+    else
+      sample="roi"
+    fi
+    cd $type
+    blasr "$type".fasta ../../../../sa/scf.fasta -sa ../../../../sa/scf.fasta.sa -sam -clipping soft -out "$sample".sam -unaligned "$sample".unaligned -nproc 8 \
+	    >log/blasr."$sample".log 2>log/blasr."$sample".err
+    samtools view -bhS "$sample".sam -o "$sample".bam
+    samtools sort "$sample".bam "$sample".sorted
   done

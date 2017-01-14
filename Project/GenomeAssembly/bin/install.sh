@@ -1,14 +1,30 @@
 #!/bin/bash
 
 #1. FALCON-integrate
+#git clone git://github.com/PacificBiosciences/FALCON-integrate.git
+#cd FALCON-integrate
+#git checkout 0.4.0
+#make init
+#make virtualenv
+#make check
+#make -j install
+#make test
+/data7/lcy/zhongxm/tools/Falcon
+mkdir myVirtualenv
+#python ../virtualenv/virtualenv.py -p python2.7 myVirtualenv
+/user/binpython ../virtualenv/virtualenv.py -p /data7/lcy/zhongxm/tools/Python-2.7.12/bin/python myVirtualenv
+unset PYTHONPATH
+source myVirtualenv/bin/activate
+export GIT_SYM_CACHE_DIR=~/.git-sym-cache # to speed things up
 git clone git://github.com/PacificBiosciences/FALCON-integrate.git
 cd FALCON-integrate
-git checkout 0.4.0
+git checkout master  # or whatever version you want
 make init
-make virtualenv
-make check
-make -j install
-make test
+source env.sh
+#make config-edit-user
+make config-edit
+make -j all
+make test  # to run a simple one
 
 #2. Python2.7.12
 wget https://www.python.org/ftp/python/2.7.12/Python-2.7.12.tgz
@@ -17,10 +33,12 @@ cd Python-2.7.12
 export LDFLAGS="-L/data7/lcy/zhongxm/tools/zlib/destDir/lib"
 ./configure --prefix=$PWD
 make 
+make install
 cd -
 ln -s Python-2.7.12 Python
 
 #3. Smrtanalysis
+# 1) V2.3
 wget https://s3.amazonaws.com/files.pacb.com/software/smrtanalysis/2.3.0/smrtanalysis_2.3.0.140936.run
 wget https://s3.amazonaws.com/files.pacb.com/software/smrtanalysis/2.3.0/smrtanalysis-patch_2.3.0.140936.p4.run
 SMRT_ROOT=/data7/lcy/zhongxm/tools/smrtanalysis_2.3
@@ -29,6 +47,13 @@ SMRT_GROUP=mobile
 mkdir $SMRT_ROOT
 bash smrtanalysis_2.3.0.140936.run -p smrtanalysis-patch_2.3.0.140936.p5.run --rootdir $SMRT_ROOT
 ln -s smrtanalysis_2.3 smrtanalysis 
+# 2) SMRT_Link
+mkdir SMRT_Link && cd SMRT_Link
+unset PYTHONPATH
+SMRT_ROOT=/data7/lcy/zhongxm/tools/SMRT_Link/smrtlink_3.1
+mkdir /data7/lcy/zhongxm/tools/SMRT_Link/data_root
+bash smrtlink_3.1.1.182868.run --rootdir $SMRT_ROOT
+sudo ln -s $SMRT_ROOT/userdata /pbi
 
 #4. Pbcc
 git clone https://github.com/PacificBiosciences/pbccs
@@ -193,7 +218,9 @@ wget http://downloads.sourceforge.net/project/mummer/mummer/3.23/MUMmer3.23.tar.
 tar -zxvf MUMmer3.23.tar.g
 cd MUMmer3.23
 make check
-make install
+#make install
+make install CPPFLAGS="-O3 -DSIXTYFOURBITS"
+sed -i '1i #!/data8/lcy01/bin/perl' mummerplot
 cd -
 ln -s MUMmer3.23 MUMer
 
