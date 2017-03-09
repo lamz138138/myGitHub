@@ -249,7 +249,7 @@ cd ..
 wget http://www.cpan.org/src/5.0/perl-5.24.0.tar.gz
 tar -xvzf perl-5.24.0.tar.gz
 cd perl-5.24.0
-./Configure -des -Dprefix=$PWD >configure.log 2>&1
+./Configure -des -Dusethreads -Dprefix=$PWD >configure.log 2>&1
 make >make.log 2>&1
 make test
 make install >makeInstall.log 2>&1
@@ -300,19 +300,22 @@ sed -i 's#qsub#qsub -V -S /bin/bash#;s#pe threads#pe zhongxm#;s#mem=2GB#mf=2g#' 
 #wget https://github.com/marbl/canu/releases/download/v1.3/canu-1.3.Linux-amd64.tar.bz2
 #bzip2 -dc canu-1.3*.tar.bz2 | tar -xf -
 #export PATH=/data7/lcy/zhongxm/tools/java/bin:/data7/lcy/zhongxm/tools/gnuplot/destDir/bin:$PATH
-wget https://github.com/marbl/canu/archive/v1.3.tar.gz
-tar -zxvf v1.3.tar.gz
-cd canu-1.3/src
+#wget https://github.com/marbl/canu/archive/v1.3.tar.gz
+#tar -zxvf v1.3.tar.gz
+#cd canu-1.3/src
+#make -j 15 >make.log 2>&1
+#cd ../../
+#cd /data7/lcy/zhongxm/tools/canu-1.3/Linux-amd64/bin/lib/canu
+#sed -i "s#set terminal png#set terminal svg#;s#\.png#\.svg#" CorrectReads.pm
+#sed -i "s#set terminal png#set terminal svg#;s#\.png#\.svg#" Gatekeeper.pm
+#sed -i "s#set terminal png#set terminal svg#;s#\.png#\.svg#" Meryl.pm
+#sed -i "s/png/svg/g" HTML.pm
+##sed -i "50 s/^use/#use/" Defaults.pm
+##sed -i "320,330d" Defaults.pm
+##sed -i "320i return(10);" Defaults.pm
+git clone https://github.com/marbl/canu.git
+cd canu/src
 make -j 15 >make.log 2>&1
-cd ../../
-cd /data7/lcy/zhongxm/tools/canu-1.3/Linux-amd64/bin/lib/canu
-sed -i "s#set terminal png#set terminal svg#;s#\.png#\.svg#" CorrectReads.pm
-sed -i "s#set terminal png#set terminal svg#;s#\.png#\.svg#" Gatekeeper.pm
-sed -i "s#set terminal png#set terminal svg#;s#\.png#\.svg#" Meryl.pm
-sed -i "s/png/svg/g" HTML.pm
-#sed -i "50 s/^use/#use/" Defaults.pm
-#sed -i "320,330d" Defaults.pm
-#sed -i "320i return(10);" Defaults.pm
 
 
 #18. RepeatMasker
@@ -379,3 +382,6 @@ ln -s trf409.legacylinux64 trf
 #20. mega
 mkdir mega && cd mega
 tar -zxvf megacc-7.0.20-1.x86_64.tar.gz
+
+#21. SSPACE
+git clone https://github.com/nsoranzo/sspace_basic.git

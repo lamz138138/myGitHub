@@ -310,9 +310,13 @@ cd $workPath/roi/demo
   # 5) Stage_1 CLR
     cd /data7/lcy/zhongxm/PacBio/pbcr/Stage_1
     ln -s /data9/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016468/data/reads_of_insert.fastq CCS.fq
-    ln -s /data9/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016470/data/filtered_subreads.fasta CLR.fq
+    ln -s /data9/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016470/data/filtered_subreads.fastq CLR_1.fq
+    ln -s /data9/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016457/data/filtered_subreads.fastq CLR_2.fq
     cp $workPath/pbcr/pacbio.SGE.spec .
     $pbcrPath/fastqToCA -libraryname CCS -technology pacbio-ccs -reads CCS.fq >CCS.frg 2>fastqToCA.err
+    #echo "$PWD/CLR_1.fq" >fastq.file
+    #echo "$PWD/CLR_2.fq" >>fastq.file
+    cat CLR_1.fq CLR_2.fq >CLR.fq
     $pbcrPath/PBcR -length 500 -partitions 200 -l pbcr -s pacbio.SGE.spec -fastq CLR.fq genomeSize=3000000000 CCS.frg >pbcr.log 2>pbcr.err
 
   cd /data7/lcy/zhongxm/tools/smrtanalysis/current/analysis/lib
@@ -425,6 +429,23 @@ cd $workPath/roi/demo
 	    -pacbio-raw data/*70X.fq \
 	    >canu.log 2>canu.err
       done
+  # 4) Stage_1 CLR
+    cd /data7/lcy/zhongxm/PacBio/canu/Stage_1/data
+    ln -s /data9/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016469/data/filtered_subreads.fastq CCS.fq
+    ln -s /data9/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016470/data/filtered_subreads.fastq CLR_1.fq
+    ln -s /data9/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016457/data/filtered_subreads.fastq CLR_2.fq
+    $canuPath/canu -p canu -d canu \
+	genomeSize=3g \
+	gridEngineThreadsOption="-pe zhongxm THREADS" \
+	gridEngineMemoryOption="-l mf=MEMORY" \
+	gridOptionsJobName="canuJob" \
+	java=/data7/lcy/zhongxm/tools/java/bin/java \
+	gridOptions="-V -q zhongxmQ -S /bin/bash" \
+	gnuplotImageFormat=svg \
+	-pacbio-raw data/CCS.fq \
+	-pacbio-raw data/CLR_1.fq \
+	-pacbio-raw data/CLR_2.fq \
+	>canu.log 2>canu.err
 
 #5. quast
   export quastPath="/data7/lcy/zhongxm/tools/quast"
@@ -717,3 +738,13 @@ for type in Subreads CCS
     samtools view -bhS "$sample".sam -o "$sample".bam
     samtools sort "$sample".bam "$sample".sorted
   done
+
+#16. SSPACE
+export sspacePath=/data7/lcy/zhongxm/tools/sspace_basic
+1) demo
+ssh c0220
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR001/SRR001665/SRR001665_1.fastq.gz
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR001/SRR001665/SRR001665_2.fastq.gz
+ln -s /data7/lcy/zhongxm/tools/sspace_basic/example/contigs_abyss.fasta .
+ln -s /data7/lcy/zhongxm/tools/sspace_basic/example/libraries.txt .
+$sspacePath/SSPACE_Basic_v2.0.pl -l libraries.txt -s contigs_abyss.fasta -k 5 -a 0.7 -x 0 -b demo_scaffold -T 30 -v 1 -p > sspace.log 2> sspace.err
