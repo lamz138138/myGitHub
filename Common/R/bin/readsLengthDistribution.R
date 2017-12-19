@@ -8,6 +8,8 @@ usage = function(){
   cat('\t-file\t\tFILE\tFile (First row should be row name, and should contain header).\n', file=stderr())
   cat('\t-p|-pdf\t\tFILE\tThe output name of file. Default: readsLengthDis.pdf.\n', file=stderr())
   cat('\t-b|-bins\tINT\tNumber of bins. Overridden by binwidth. Default: 60.\n', file=stderr())
+  cat('\t-binWidth\tINT\tThe width of the bins. Overridden by binwidth. Default: null.\n', file=stderr())
+  cat('\t-breaks\tSTR\tNumeric vector giving the bin boundaries. Default: null.\n', file=stderr())
   cat('\t-colName\tSTRING\tThe column name of length. Default: len.\n', file=stderr())
   cat('\t-width\t\tINT\t(Optional) The width in inches of output. Default: 1024.\n',file=stderr())
   cat('\t-height\t\tINT\t(Optional) The height in inches of output. Default: 768.\n',file=stderr())
@@ -26,6 +28,8 @@ myColName='len'
 myMain='Main Title'
 myXLab='X'
 myYLab='Y'
+myBinWidth='null'
+myBreaks='null'
 
 if(length(args) >= 1){
   for(i in 1:length(args)){
@@ -55,6 +59,26 @@ if(length(args) >= 1){
       }
     }
     
+    # width of bin
+    if(grepl('^-binWidth?=', arg)){
+      arg.split = strsplit(arg, '=', fixed = T)[[1]]
+      if(is.na(arg.split[2])){
+        stop('Please specify the value of -binWidth')
+      }else{
+        myBinWidth=as.numeric(arg.split[2])
+      }
+    }
+
+    # breaks
+    if(grepl('^-breaks?=', arg)){
+      arg.split = strsplit(arg, '=', fixed = T)[[1]]
+      if(is.na(arg.split[2])){
+        stop('Please specify the value of -breaks')
+      }else{
+        myBreaks=as.numeric(arg.split[2])
+      }
+    }
+
     # the column name of length
     if(grepl('^-colName?=', arg)){
       arg.split = strsplit(arg, '=', fixed = T)[[1]]
@@ -133,5 +157,11 @@ data=read.delim(file=myFile, sep="\t", row.names=1)
 data=data[-length(data[,1]),]
 outputPlot = ggplot(data)
 outputPlot = outputPlot + geom_histogram(aes(x=data[,myColName]),bins=myBins) 
+if(myBinWidth!="null"){
+	outputPlot = outputPlot + geom_histogram(binwidth=myBinWidth)
+}
+if(myBreaks!="null"){
+	outputPlot = outputPlot + geom_histogram(breaks=myBreaks)
+}
 outputPlot = outputPlot + labs(title=myMain, x=myXLab, y=myYLab)
 ggsave(myPdf, width=myWidth, height=myHeight, plot=outputPlot, limitsize=FALSE)
