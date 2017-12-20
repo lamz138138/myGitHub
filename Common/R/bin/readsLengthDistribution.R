@@ -154,14 +154,15 @@ if(length(args) >= 1){
 
 library("ggplot2")
 data=read.delim(file=myFile, sep="\t", row.names=1)
-data=data[-length(data[,1]),]
+#data=data[-length(data[,1]),]
 outputPlot = ggplot(data)
-outputPlot = outputPlot + geom_histogram(aes(x=data[,myColName]),bins=myBins) 
-if(myBinWidth!="null"){
-	outputPlot = outputPlot + geom_histogram(binwidth=myBinWidth)
-}
-if(myBreaks!="null"){
-	outputPlot = outputPlot + geom_histogram(breaks=myBreaks)
+if(myBreaks!='null'){
+	outputPlot = outputPlot + geom_histogram(aes(x=data[,myColName]),breaks=myBreaks)
+}else if(myBinWidth!='null'){
+	outputPlot = outputPlot + geom_histogram(aes(x=data[,myColName]),binwidth=myBinWidth)
+}else{
+	outputPlot = outputPlot + geom_histogram(aes(x=data[,myColName]),bins=myBins) 
 }
 outputPlot = outputPlot + labs(title=myMain, x=myXLab, y=myYLab)
-ggsave(myPdf, width=myWidth, height=myHeight, plot=outputPlot, limitsize=FALSE)
+#ggsave(myPdf, width=myWidth, height=myHeight, plot=outputPlot, limitsize=FALSE)
+ggsave(myPdf, plot=outputPlot)
