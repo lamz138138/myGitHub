@@ -195,6 +195,19 @@ cd $workPath/roi/demo
     find "$PWD"/data/ -name "*.fasta" > input.fofn
     cp /data7/lcy/zhongxm/PacBio/simulate4/30XCLR_RS+70XCLR_Sequel/falcon/fc_run.cfg .
     fc_run.py fc_run.cfg >fc_run.log 2>fc_run.err
+  # 7) Stage_1 and Stage_2 (CLR)
+    ssh smp03
+    unset PYTHONPATH 
+    source /data7/lcy/zhongxm/tools/myVirtualenv/bin/activate
+    export PATH=/data7/lcy/zhongxm/tools/Falcon/myVirtualenv/bin:/data7/lcy/zhongxm/tools/Falcon/FALCON-integrate/fc_env/bin:$PATH
+    cd /data12/lcy01/zhongxm/PacBio/falcon/
+    mkdir data && cd data
+    ln -s /data12/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016470/data/filtered_subreads.fasta CLR_1.fasta
+    ln -s /data12/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016457/data/filtered_subreads.fasta CLR_2.fasta
+    ln -s /data12/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016474/data/filtered_subreads.fasta CLR_3.fasta
+    cd ..
+    find "$PWD"/data/ -name "*.fasta" > input.fofn
+    fc_run.py fc_run.cfg >fc_run.log 2>fc_run.err
 
 
 #3. PBcR
@@ -429,11 +442,17 @@ cd $workPath/roi/demo
 	    -pacbio-raw data/*70X.fq \
 	    >canu.log 2>canu.err
       done
-  # 4) Stage_1 CLR
-    cd /data7/lcy/zhongxm/PacBio/canu/Stage_1/data
-    ln -s /data9/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016469/data/filtered_subreads.fastq CCS.fq
-    ln -s /data9/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016470/data/filtered_subreads.fastq CLR_1.fq
-    ln -s /data9/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016457/data/filtered_subreads.fastq CLR_2.fq
+  # 4) Stage_1 and Stage_2 CLR
+    #cd /data7/lcy/zhongxm/PacBio/canu/Stage_1/data
+    #ln -s /data9/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016469/data/filtered_subreads.fastq CCS.fq
+    #ln -s /data9/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016470/data/filtered_subreads.fastq CLR_1.fq
+    #ln -s /data9/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016457/data/filtered_subreads.fastq CLR_2.fq
+    cd /data12/lcy01/zhongxm/PacBio/canu/
+    mkdir data && cd data
+    ln -s /data12/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016470/data/filtered_subreads.fastq CLR_1.fq
+    ln -s /data12/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016457/data/filtered_subreads.fastq CLR_2.fq
+    ln -s /data12/lcy01/zhongxm/tools/smrtanalysis/userdata/jobs/016/016474/data/filtered_subreads.fastq CLR_3.fq
+    cd ..
     $canuPath/canu -p canu -d canu \
 	genomeSize=3g \
 	gridEngineThreadsOption="-pe zhongxm THREADS" \
@@ -442,9 +461,9 @@ cd $workPath/roi/demo
 	java=/data7/lcy/zhongxm/tools/java/bin/java \
 	gridOptions="-V -q zhongxmQ -S /bin/bash" \
 	gnuplotImageFormat=svg \
-	-pacbio-raw data/CCS.fq \
 	-pacbio-raw data/CLR_1.fq \
 	-pacbio-raw data/CLR_2.fq \
+	-pacbio-raw data/CLR_3.fq \
 	>canu.log 2>canu.err
 
 #5. quast
@@ -473,6 +492,37 @@ cd $workPath/roi/demo
 	      >quast.log 2>quast.err
 	  done
       done
+  # 2) rheMac2
+  ssh smp01
+  mkdir -p /data12/lcy/zhongxm/evalution/quast && cd /data12/lcy/zhongxm/evalution/quast
+  export quastPath="/data7/lcy/zhongxm/tools/quast"
+  export referencePath="/data7/lcy/zhongxm/public_data/fasta/hg38/hg38.fa"
+  #unset PYTHONPATH
+  mkdir rheMac2 && cd rheMac2
+  ln -s /data7/lcy/zhongxm/public_data/fasta/rheMac2/rheMac2.fasta scf.fasta
+  $quastPath/quast.py scf.fasta \
+     -R $referencePath \
+     -o output \
+     --threads 30 \
+     -s \
+     -e \
+     >quast.log 2>quast.err
+  # 3) rheMac8
+  ssh smp03
+  mkdir -p /data12/lcy/zhongxm/evalution/quast && cd /data12/lcy/zhongxm/evalution/quast
+  export quastPath="/data7/lcy/zhongxm/tools/quast"
+  export referencePath="/data7/lcy/zhongxm/public_data/fasta/hg38/hg38.fa"
+  #unset PYTHONPATH
+  mkdir rheMac8 && cd rheMac8
+  ln -s /data7/lcy/zhongxm/public_data/fasta/rheMac8/rheMac8.fasta scf.fasta
+  $quastPath/quast.py scf.fasta \
+     -R $referencePath \
+     -o output \
+     --threads 30 \
+     -s \
+     -e \
+     >quast.log 2>quast.err
+   
 
 #6. MUMMer
   export mummerPath="/data7/lcy/zhongxm/tools/MUMmer"
@@ -510,6 +560,52 @@ cd $workPath/roi/demo
 	    gnuplot mummer_output.gp 
 	  done
       done
+  # 2) rheMac2
+  ssh smp02
+  mkdir -p /data12/lcy/zhongxm/evalution/mummer && cd /data12/lcy/zhongxm/evalution/mummer
+  export mummerPath="/data7/lcy/zhongxm/tools/MUMmer"
+  export PATH=/data7/lcy/zhongxm/tools/gnuplot/destDir/bin:$PATH
+  export referencePath="/data7/lcy/zhongxm/public_data/fasta/hg38/hg38.fa"
+  mkdir rheMac2 && cd rheMac2
+  ln -s /data7/lcy/zhongxm/public_data/fasta/rheMac2/rheMac2.fasta scf.fasta
+  $mummerPath/nucmer -p nucmer $referencePath scf.fasta >nucmer.log 2>nucmer.err
+  $mummerPath/mummerplot  -f \
+    -p mummer_output \
+    -s large \
+    -R $referencePath \
+    -Q scf.fasta \
+    -t postscript \
+    nucmer.delta \
+    >mummerplot.log 2>mummerplot.err
+  cp mummer_output.gp mummer_output.gp.bak
+  sed -i "/set output/ s/ps/svg/" mummer_output.gp
+  sed -i "/set terminal/ s/.*/set terminal svg/" mummer_output.gp
+  sed -i "/set mouse/ s/^set/#set/" mummer_output.gp
+  sed -i "/set size/ s/.*/set size 1024,1024/" mummer_output.gp
+  gnuplot mummer_output.gp >gnuplot.log 2>gnuplot.err 
+  # 3) rheMac8
+  ssh smp02
+  mkdir -p /data12/lcy/zhongxm/evalution/mummer && cd /data12/lcy/zhongxm/evalution/mummer
+  export mummerPath="/data7/lcy/zhongxm/tools/MUMmer"
+  export PATH=/data7/lcy/zhongxm/tools/gnuplot/destDir/bin:$PATH
+  export referencePath="/data7/lcy/zhongxm/public_data/fasta/hg38/hg38.fa"
+  mkdir rheMac8 && cd rheMac8
+  ln -s /data7/lcy/zhongxm/public_data/fasta/rheMac8/rheMac8.fasta scf.fasta
+  $mummerPath/nucmer -p nucmer $referencePath scf.fasta >nucmer.log 2>nucmer.err
+  $mummerPath/mummerplot  -f \
+    -p mummer_output \
+    -s large \
+    -R $referencePath \
+    -Q scf.fasta \
+    -t postscript \
+    nucmer.delta \
+    >mummerplot.log 2>mummerplot.err
+  cp mummer_output.gp mummer_output.gp.bak
+  sed -i "/set output/ s/ps/svg/" mummer_output.gp
+  sed -i "/set terminal/ s/.*/set terminal svg/" mummer_output.gp
+  sed -i "/set mouse/ s/^set/#set/" mummer_output.gp
+  sed -i "/set size/ s/.*/set size 1024,1024/" mummer_output.gp
+  gnuplot mummer_output.gp >gnuplot.log 2>gnuplot.err 
 
 #7. Statistics after correction
   export PATH=/data7/lcy/zhongxm/PacBio/bin:$PATH
@@ -741,10 +837,189 @@ for type in Subreads CCS
 
 #16. SSPACE
 export sspacePath=/data7/lcy/zhongxm/tools/sspace_basic
-1) demo
+#1) demo
 ssh c0220
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR001/SRR001665/SRR001665_1.fastq.gz
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR001/SRR001665/SRR001665_2.fastq.gz
 ln -s /data7/lcy/zhongxm/tools/sspace_basic/example/contigs_abyss.fasta .
 ln -s /data7/lcy/zhongxm/tools/sspace_basic/example/libraries.txt .
 $sspacePath/SSPACE_Basic_v2.0.pl -l libraries.txt -s contigs_abyss.fasta -k 5 -a 0.7 -x 0 -b demo_scaffold -T 30 -v 1 -p > sspace.log 2> sspace.err
+
+#17. Get fastq from sequel bam
+export PATH=/data7/lcy/zhongxm/tools/SMRT_Link/smrtlink_3.1/smrtcmds/bin:/data7/lcy/zhongxm/PacBio/bin:$PATH
+# 1) stage 3
+cd /data12/lcy01/zhongxm/PacBio/data/Sequle/stage_3/fastx
+find ../| grep -P "brain|muscle" | grep "subreads.bam$" | while read file
+  do
+    dir=$( dirname $file | sed 's#../##' )
+    sample=$( basename $file | sed 's#.subreads.bam##' )
+    mkdir -p $dir
+    bamtools convert -format fastq -in $file -out "$dir"/"$sample".fastq
+    bamtools convert -format fasta -in $file -out "$dir"/"$sample".fasta
+    fqStatistics.pl "$dir"/"$sample".fastq >"$dir"/"$sample"_statistics.tsv
+  done
+# 2) stage 4
+cd /data12/lcy01/zhongxm/PacBio/data/Sequle/stage_4/fastx
+find ../| grep -P "brain|muscle" | grep "subreads.bam$" | while read file
+  do
+    dir=$( dirname $file | sed 's#../##' )
+    sample=$( basename $file | sed 's#.subreads.bam##' )
+    mkdir -p $dir
+    bamtools convert -format fastq -in $file -out "$dir"/"$sample".fastq
+    bamtools convert -format fasta -in $file -out "$dir"/"$sample".fasta
+    fqStatistics.pl "$dir"/"$sample".fastq >"$dir"/"$sample"_statistics.tsv
+  done
+
+
+#18. Falcon_unzip
+#1) demo
+ssh smp03
+mkdir /data12/lcy01/zhongxm/PacBio/falcon_unzip
+cd /data12/lcy01/zhongxm/PacBio/falcon_unzip
+mkdir demo && cd demo
+ # i) get raw data
+  scp -r zhongxm@202.205.131.254:/rd1/user/zhongxm/temp/Arabidopsis .
+  #wget -o m54113_160913_184949.subreads.txt https://downloads.pacbcloud.com/public/SequelData/ArabidopsisDemoData/SequenceData/1_A01_customer/m54113_160913_184949.subreads.bam 
+  #wget https://downloads.pacbcloud.com/public/SequelData/ArabidopsisDemoData/SequenceData/1_A01_customer/m54113_160913_184949.subreads.bam.pbi
+  #wget https://downloads.pacbcloud.com/public/SequelData/ArabidopsisDemoData/SequenceData/3_C01_customer/m54113_160914_092411.subreads.bam.pbi
+  #wget -o m54113_160914_092411.subreads.txt https://downloads.pacbcloud.com/public/SequelData/ArabidopsisDemoData/SequenceData/3_C01_customer/m54113_160914_092411.subreads.bam
+  # ii) get fasta
+  mkdir fasta
+  export PATH=/data7/lcy/zhongxm/tools/SMRT_Link/smrtlink_3.1/smrtcmds/bin:/data7/lcy/zhongxm/PacBio/bin:$PATH
+  bamtools convert -format fasta -in Arabidopsis/m54113_160913_184949.subreads.bam -out fasta/m54113_160913_184949.subreads.fasta
+  bamtools convert -format fasta -in Arabidopsis/m54113_160914_092411.subreads.bam -out fasta/m54113_160914_092411.subreads.fasta 
+  # iii) run falcon  
+  source /data7/lcy/zhongxm/tools/myVirtualenv/bin/activate
+  export PATH=/data7/lcy/zhongxm/tools/Falcon/myVirtualenv/bin:/data7/lcy/zhongxm/tools/Falcon/FALCON-integrate/fc_env/bin:$PATH
+  http://pb-falcon.readthedocs.io/en/latest/_downloads/fc_run_arabidopsis.cfg
+  cp ../../falcon/fc_run.cfg .
+  # revised fc_run.cfg accordint to download cfg
+  find "$PWD"/fasta/ -name "*.fasta" > input.fofn
+  unset module
+  fc_run.py fc_run.cfg >fc_run.log 2>fc_run.err
+  # iv) run falcon_unzip
+  #export PATH=$( echo $PATH | sed "s#/data7/lcy/zhongxm/tools/SMRT_Link/smrtlink_3.1/smrtcmds/bin:##" )
+  #source /data7/lcy/zhongxm/tools/smrtanalysis/current/etc/setup.sh
+  #source /data7/lcy/zhongxm/tools/myVirtualenv/bin/activate
+  #cp /data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/FALCON_unzip/examples/fc_unzip.cfg .
+  #ls $PWD/Arabidopsis/*bam >input_bam.fofn
+  # revised fc_unzip.cfg
+  #export PATH=/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/FALCON_unzip/destDir/bin:$PATH
+  #export LD_LIBRARY_PATH=/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/FALCON_unzip/destDir/lib:$LD_LIBRARY_PATH
+  #export PYTHONPATH=/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/FALCON_unzip/destDir/lib/python2.7/site-package
+  #export SGE_ROOT=/opt/gridengine
+  #source /data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/myVirtualenv/bin/activate
+  #export PYTHONPATH=/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/myVirtualenv/lib/python27.zip:/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/myVirtualenv/lib/python2.7:/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/myVirtualenv/lib/python2.7/plat-linux2:/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/myVirtualenv/lib/python2.7/lib-tk:/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/myVirtualenv/lib/python2.7/lib-old:/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/myVirtualenv/lib/python2.7/lib-dynload:/usr/local/lib/python2.7:/usr/local/lib/python2.7/plat-linux2:/usr/local/lib/python2.7/lib-tk:/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/myVirtualenv/lib/python2.7/site-packages:/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/myVirtualenv/lib/python2.7/site-packages/ConsensusCore-1.0.2-py2.7.egg:/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/myVirtualenv/lib/python2.7/site-packages/GenomicConsensus-2.2.0-py2.7.egg
+  source /data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/myVirtualenv/bin/activate
+  export PATH=$PATH:/data7/lcy/zhongxm/tools/MUMmer
+  cp /data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/FALCON_unzip/examples/fc_unzip.cfg .
+  # revised fc_unzip.cfg
+  ls $PWD/Arabidopsis/*bam >input_bam.fofn
+  unset module
+  fc_unzip.py fc_unzip.cfg >fc_unzip.log 2>fc_unzip.err 
+  fc_quiver.py fc_unzip.cfg >fc_quiver.log 2>fc_quiver.err
+
+#2) demo2
+ssh smp01
+cd /data12/lcy01/zhongxm/PacBio/falcon_unzip
+mkdir demo2 && cd demo2
+  # i) run falcon  
+  source /data7/lcy/zhongxm/tools/myVirtualenv/bin/activate
+  export PATH=/data7/lcy/zhongxm/tools/Falcon/myVirtualenv/bin:/data7/lcy/zhongxm/tools/Falcon/FALCON-integrate/fc_env/bin:$PATH
+  find "$PWD"/data/ -name "*.fasta" > input.fofn
+  unset module
+  fc_run.py fc_run.cfg >fc_run.log 2>fc_run.err
+  # ii) run falcon_unzip
+  source /data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/myVirtualenv/bin/activate
+  export PATH=$PATH:/data7/lcy/zhongxm/tools/MUMmer
+  ls $PWD/data/*bam >input_bam.fofn
+  unset module
+  fc_unzip.py fc_unzip.cfg >fc_unzip.log 2>fc_unzip.err 
+  fc_quiver.py fc_unzip.cfg >fc_quiver.log 2>fc_quiver.err
+
+#3) mitochondria
+cd /data12/lcy01/zhongxm/PacBio/falcon_unzip/
+mkdir mitochondria && cd mitochondria
+# i) all reads map to mitochondria
+samtools view /data7/lcy/zhongxm/tools/smrtanalysis/userdata/jobs/016/016470/data/aligned_reads.bam chrMT | cut -f1 | sort | uniq >chrMT_readName.txt
+mkdir data
+./faTookit.pl -s chrMT_readName.txt ../../falcon/data/CLR_1.fasta > data/chrMT.fasta
+  # a) run falcon  
+  source /data7/lcy/zhongxm/tools/myVirtualenv/bin/activate
+  export PATH=/data7/lcy/zhongxm/tools/Falcon/myVirtualenv/bin:/data7/lcy/zhongxm/tools/Falcon/FALCON-integrate/fc_env/bin:$PATH
+  find "$PWD"/data/ -name "*.fasta" | grep -v whole> input.fofn
+  unset module
+  fc_run.py fc_run.cfg >fc_run.log 2>fc_run.err
+  # b) find read in contig
+  source /data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/myVirtualenv/bin/activate
+  python -m falcon_kit.mains.get_read_ctg_map
+  python -m falcon_kit.mains.rr_ctg_track
+  python -m falcon_kit.mains.pr_ctg_track
+  mkdir -p 3-unzip/reads/
+  python -m falcon_kit.mains.fetch_reads
+# ii) reads whole cover to mitochondria
+./faTookit_v2.pl -s read_name_whole_cover.txt data/chrMT.fasta >data/chrMT_whole_cover.fasta
+  # a) run falcon  
+  source /data7/lcy/zhongxm/tools/myVirtualenv/bin/activate
+  export PATH=/data7/lcy/zhongxm/tools/Falcon/myVirtualenv/bin:/data7/lcy/zhongxm/tools/Falcon/FALCON-integrate/fc_env/bin:$PATH
+  find "$PWD"/data/ -name "*.fasta" | grep whole> input.fofn
+  unset module
+  fc_run.py fc_run.cfg >fc_run.log 2>fc_run.err
+  # b) find read in contig
+  source /data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/myVirtualenv/bin/activate
+  python -m falcon_kit.mains.get_read_ctg_map
+  python -m falcon_kit.mains.rr_ctg_track
+  python -m falcon_kit.mains.pr_ctg_track
+  mkdir -p 3-unzip/reads/
+  python -m falcon_kit.mains.fetch_reads
+# iii) 60_read
+  # command same as above
+ 
+
+
+#19. Convert RSII bax to bam
+ssh smp01
+export PATH=/data7/lcy/zhongxm/tools/SMRT_Link/smrtlink_3.1/smrtcmds/bin:$PATH
+cd /data12/lcy/zhongxm/PacBio/data/
+mkdir bax2bam && cd bax2bam
+#1) stage 1
+ls ../Stage_1/CLR/dataset*/*/Analysis_Results/*p0.1.bax.h5 | while read file
+  do
+    sample=$( basename $file _s1_p0.1.bax.h5 )
+    dir=$( dirname $file | sed 's#../##;s#/Analysis_Results##' )
+    mkdir -p $dir && cd $dir
+    dirPath="/data12/lcy01/zhongxm/PacBio/data/RSII"
+    bax2bam "$dirPath"/"$dir"/Analysis_Results/"$sample"_s1_p0.1.bax.h5 "$dirPath"/"$dir"/Analysis_Results/"$sample"_s1_p0.2.bax.h5 \
+	"$dirPath"/"$dir"/Analysis_Results/"$sample"_s1_p0.3.bax.h5 -o "$sample"
+    cd -
+  done
+# 2) stage 2 and stage 3
+find ../Stage_*/ | grep "p0.1.bax.h5$" | while read file
+  do
+    sample=$( basename $file _s1_p0.1.bax.h5 )
+    dir=$( dirname $file | sed 's#../##;s#/Analysis_Results##' )
+    mkdir -p $dir && cd $dir
+    dirPath="/data12/lcy01/zhongxm/PacBio/data/RSII"
+    bax2bam "$dirPath"/"$dir"/Analysis_Results/"$sample"_s1_p0.1.bax.h5 "$dirPath"/"$dir"/Analysis_Results/"$sample"_s1_p0.2.bax.h5 \
+	"$dirPath"/"$dir"/Analysis_Results/"$sample"_s1_p0.3.bax.h5 -o "$sample"
+    cd -
+  done
+
+
+#20. Import sequel data
+ssh smp01
+cd /data7/lcy/zhongxm/tools/SMRT_Link/smrtlink_3.1
+export SMRT_ROOT=/data7/lcy/zhongxm/tools/SMRT_Link/smrtlink_3.1
+find $PWD/userdata/stage4_Sequel/ | grep "subreadset.xml" | while read file
+  do
+    $SMRT_ROOT/smrtcmds/bin/pbservice import-dataset --host http://222.28.169.242 --port 9091 --debug $file
+  done
+
+#21. Distribution of read length 
+ssh smp01
+export PATH=$PATH:/data7/lcy/zhongxm/PacBio/bin
+cd /data12/lcy01/zhongxm/PacBio/data/read_length
+faCount m54065_171024_151544.fasta >test.tsv
+export PATH=$PATH:/data7/lcy/zhongxm/tools/R-3.4.3/destDir/bin
+cut -f1,2 test.tsv | sed '1d;$d' >forR.tsv
+readsLengthDistribution.R -p=read.pdf -file=forR.tsv

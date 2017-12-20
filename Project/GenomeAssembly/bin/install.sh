@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #1. FALCON-integrate
+# 1) Falcon-integrate
 #git clone git://github.com/PacificBiosciences/FALCON-integrate.git
 #cd FALCON-integrate
 #git checkout 0.4.0
@@ -9,22 +10,125 @@
 #make check
 #make -j install
 #make test
-/data7/lcy/zhongxm/tools/Falcon
+cd /data7/lcy/zhongxm/tools/Falcon
 mkdir myVirtualenv
 #python ../virtualenv/virtualenv.py -p python2.7 myVirtualenv
-/user/binpython ../virtualenv/virtualenv.py -p /data7/lcy/zhongxm/tools/Python-2.7.12/bin/python myVirtualenv
+/user/bin/python ../virtualenv/virtualenv.py -p /data7/lcy/zhongxm/tools/Python-2.7.12/bin/python myVirtualenv
 unset PYTHONPATH
 source myVirtualenv/bin/activate
 export GIT_SYM_CACHE_DIR=~/.git-sym-cache # to speed things up
-git clone git://github.com/PacificBiosciences/FALCON-integrate.git
+git clone git://github.com/PacificBiosciences/FALCON-integrate.git  # 2017-10-19
 cd FALCON-integrate
 git checkout master  # or whatever version you want
+git submodule update --init
 make init
 source env.sh
 #make config-edit-user
 make config-edit
 make -j all
+#sed -i "310 s/assert/#assert/" /data7/lcy/zhongxm/tools/Falcon/FALCON-integrate/FALCON/falcon_kit/bash.py
 make test  # to run a simple one
+
+# 2) Falcon_unzip
+cd /data7/lcy/zhongxm/tools/Falcon
+mkdir Falcon_unzip && cd Falcon_unzip
+# a) Python 2.7.9
+wget https://www.python.org/ftp/python/2.7.9/Python-2.7.9.tgz
+tar -zxvf Python-2.7.9.tgz
+ssh smp01
+cd /data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/Python-2.7.9
+./configure --prefix=$PWD --enable-unicode=ucs4
+make 
+make install
+exit
+# b) falcon_unzip
+export PYTHONPATH=/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/Python-2.7.9/bin
+export PATH=$PYTHONPATH:$PATH
+mkdir myVirtualenv
+python /data7/lcy/zhongxm/tools/virtualenv/virtualenv.py -p python2.7 --always-copy $PWD/myVirtualenv
+curl -O https://downloads.pacbcloud.com/public/falcon/falcon-2017.06.28-18.01-py2.7-ucs4.tar.gz
+tar -zxvf falcon-2017.06.28-18.01-py2.7-ucs4.tar.gz -C $PWD/myVirtualenv/
+echo "export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH}:$PWD/myVirtualenv/lib" >>$PWD/myVirtualenv/bin/activate
+ln -s /data7/lcy/zhongxm/tools/MUMmer/nucmer myVirtualenv/bin
+source myVirtualenv/bin/activate
+rm myVirtualenv/lib/python2.7/site-packages/numpy*
+unizp numpy-1.13.0.zip
+cd numpy-1.13.0
+python setup.py build 
+python setup install --prefix=/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/myVirtualenv
+cd --
+#ln -s /data7/lcy/zhongxm/tools/smrtanalysis/current/analysis/lib/python2.7/numpy-1.7.1-py2.7-linux-x86_64.egg myVirtualenv/lib/python2.7/site-packages/
+#pip uninstall numpy
+#pip install numpy
+
+#rm myVirtualenv/bin/blasr
+#ln -s /data7/lcy/zhongxm/tools/smrtanalysis/current/analysis/bin/blasr myVirtualenv/bin
+#rm myVirtualenv/bin/variantCaller
+#ln -s /data7/lcy/zhongxm/tools/smrtanalysis/current/analysis/bin/variantCaller.py myVirtualenv/bin
+#ln -s myVirtualenv/bin/variantCaller.py myVirtualenv/bin/variantCaller
+#rm -rf myVirtualenv//lib/python2.7/site-packages/pysam*
+#ln -s /data7/lcy/zhongxm/tools/smrtanalysis/current/analysis/lib/python2.7/pysam myVirtualenv/lib/python2.7/site-packages/
+#ln -s /data7/lcy/zhongxm/tools/smrtanalysis/current/analysis/lib/python2.7/pysam-0.8.0-py2.7.egg-info myVirtualenv/lib/python2.7/site-packages/
+#rm -rf myVirtualenv/lib/python2.7/site-packages/GenomicConsensus-2.2.0-py2.7.egg
+#ln -s /data7/lcy/zhongxm/tools/smrtanalysis/current/analysis/lib/python2.7/GenomicConsensus-0.9.0-py2.7.egg-info myVirtualenv/lib/python2.7/site-packages/
+#ln -s /data7/lcy/zhongxm/tools/smrtanalysis/current/analysis/lib/python2.7/GenomicConsensus myVirtualenv/lib/python2.7/site-packages/
+#rm -rf myVirtualenv/lib/python2.7/site-packages/h5py*
+#ln -s /data7/lcy/zhongxm/tools/smrtanalysis/current/analysis/lib/python2.7/h5py myVirtualenv/lib/python2.7/site-packages/
+#ln -s /data7/lcy/zhongxm/tools/smrtanalysis/current/analysis/lib/python2.7/h5py-2.2.0-py2.7.egg-info myVirtualenv/lib/python2.7/site-packages/
+
+#echo "export LD_LIBRARY_PATH=$PWD/myVirtualenv/lib:\${LD_LIBRARY_PATH}" >>$PWD/myVirtualenv/bin/activate
+#source $PWD/myVirtualenv/bin/activate
+#curl -O https://downloads.pacbcloud.com/public/falcon/falcon-2017.06.28-18.01-py2.7-ucs2.tar.gz
+#tar -zxvf falcon-2017.06.28-18.01-py2.7-ucs2.tar.gz -C $PWD/myVirtualenv/
+#ln -s /data7/lcy/zhongxm/tools/MUMmer/nucmer myVirtualenv/bin
+ # i) XZ
+ #mkdir XZ && cd XZ
+ #wget https://tukaani.org/xz/xz-5.2.3.tar.gz --no-check-certificate
+ #tar -zxvf xz-5.2.3.tar.gz
+ #export PATH=/data7/lcy/zhongxm/tools/boost/destDir:/data7/lcy/zhongxm/tools/gcc/destDir/bin:$PATH
+ #export LD_LIBRARY_PATH=/data7/lcy/zhongxm/tools/boost/destDir/stage/lib:/data7/lcy/zhongxm/tools/zlib/destDir/lib:/data7/lcy/zhongxm/tools/gcc/destDir/lib64:/data7/lcy/zhongxm/tools/gcc/gmp/destDir/lib:/data7/lcy/zhongxm/tools/gcc/mpfr/destDir/lib:/data7/lcy/zhongxm/tools/gcc/mpc/destDir/lib:$LD_LIBRARY_PATH
+ #mv xz-5.2.3 srcDir
+ #mkdir destDir
+ #mkdir objDir && cd objDir
+ #../srcDir/configure --prefix=${PWD/objDir/destDir}
+ #make -j 15
+ #make install
+ # ii) falcon_unzip
+ # 2017-10-19
+ #git clone https://github.com/PacificBiosciences/FALCON_unzip.git
+ #cd FALCON_unzip
+ #./setup.py build
+ # open a new window before follow command
+ #source /data7/lcy/zhongxm/tools/Falcon/myVirtualenv/bin/activate
+ #./setup.py build
+ #deactivate
+ #source /data7/lcy/zhongxm/tools/smrtanalysis/current/etc/setup.sh
+ #source /data7/lcy/zhongxm/tools/Falcon/myVirtualenv/bin/activate
+ #export PYTHONPATH=/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/FALCON_unzip/destDir/lib/python2.7/site-packages
+ #mkdir -p $PYTHONPATH
+ #export LDFLAGS=/data7/lcy/zhongxm/tools/Falcon/Facon_unzip/XZ/destDir/lib
+ #pip install pysam
+ #./setup.py install --prefix=/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/FALCON_unzip/destDir # failed at this step
+
+ #export PATH=/data7/lcy/zhongxm/tools/Falcon/Facon_unzip/XZ/destDir/bin:/data7/lcy/zhongxm/tools/boost/destDir:/data7/lcy/zhongxm/tools/gcc/destDir/bin:$PATH
+ #export LD_LIBRARY_PATH=/data7/lcy/zhongxm/tools/Falcon/Facon_unzip/XZ/destDir/lib:/data7/lcy/zhongxm/tools/boost/destDir/stage/lib:/data7/lcy/zhongxm/tools/zlib/destDir/lib:/data7/lcy/zhongxm/tools/gcc/destDir/lib64:/data7/lcy/zhongxm/tools/gcc/gmp/destDir/lib:/data7/lcy/zhongxm/tools/gcc/mpfr/destDir/lib:/data7/lcy/zhongxm/tools/gcc/mpc/destDir/lib:$LD_LIBRARY_PATH
+ #export LDFLAGS=/data7/lcy/zhongxm/tools/Falcon/Facon_unzip/XZ/destDir/lib:/data7/lcy/zhongxm/tools/boost/destDir/stage/lib:/data7/lcy/zhongxm/tools/zlib/destDir/lib:/data7/lcy/zhongxm/tools/gcc/destDir/lib64:/data7/lcy/zhongxm/tools/gcc/gmp/destDir/lib:/data7/lcy/zhongxm/tools/gcc/mpfr/destDir/lib:/data7/lcy/zhongxm/tools/gcc/mpc/destDir/lib:$LDFLAGS
+ ./setup.py install --prefix=/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/FALCON_unzip/destDir # failed at this step
+ #export PATH=/data7/lcy/zhongxm/tools/Falcon/Facon_unzip/XZ/destDir/bin:$PATH
+ #export LD_LIBRARY_PATH=/data7/lcy/zhongxm/tools/Falcon/Facon_unzip/XZ/destDir/lib:$LD_LIBRARY_PATH
+ #export LDFLAGS=/data7/lcy/zhongxm/tools/Falcon/Facon_unzip/XZ/destDir/lib:$LD_LIBRARY_PATH
+ ./setup.py install --prefix=/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/FALCON_unzip/destDir # failed at this step
+ #export LDFLAGS="-L/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/XZ/destDir/include"
+ #export PATH=/data7/lcy/zhongxm/tools/Falcon/Facon_unzip/XZ/destDir/bin:/data7/lcy/zhongxm/tools/boost/destDir:/data7/lcy/zhongxm/tools/gcc/destDir/bin:$PATH
+ #export LD_LIBRARY_PATH=/data7/lcy/zhongxm/tools/Falcon/Facon_unzip/XZ/destDir/lib:/data7/lcy/zhongxm/tools/boost/destDir/stage/lib:/data7/lcy/zhongxm/tools/zlib/destDir/lib:/data7/lcy/zhongxm/tools/gcc/destDir/lib64:/data7/lcy/zhongxm/tools/gcc/gmp/destDir/lib:/data7/lcy/zhongxm/tools/gcc/mpfr/destDir/lib:/data7/lcy/zhongxm/tools/gcc/mpc/destDir/lib:$LD_LIBRARY_PATH
+ #export LZMA_CFLAGS=/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/XZ/destDir/bin
+ #export LZMA_LIBS=/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/XZ/destDir/lib
+ #export PKG_CONFIG_PATH=/data7/lcy/zhongxm/tools/Falcon/Falcon_unzip/XZ/destDir/lib/pkgconfig
+ # or falcon_unzip could be downloaded as follow
+ #curl -O https://downloads.pacbcloud.com/public/falcon/falcon-2017.06.28-18.01-py2.7-ucs2.tar.gz
+ #tar -zxvf falcon-2017.06.28-18.01-py2.7-ucs2.tar.gz
+  
+
 
 #2. Python2.7.12
 wget https://www.python.org/ftp/python/2.7.12/Python-2.7.12.tgz
@@ -48,12 +152,21 @@ mkdir $SMRT_ROOT
 bash smrtanalysis_2.3.0.140936.run -p smrtanalysis-patch_2.3.0.140936.p5.run --rootdir $SMRT_ROOT
 ln -s smrtanalysis_2.3 smrtanalysis 
 # 2) SMRT_Link
+#mkdir SMRT_Link && cd SMRT_Link
+#unset PYTHONPATH
+#SMRT_ROOT=/data7/lcy/zhongxm/tools/SMRT_Link/smrtlink_3.1
+#mkdir /data7/lcy/zhongxm/tools/SMRT_Link/data_root
+#bash smrtlink_3.1.1.182868.run --rootdir $SMRT_ROOT
+#sudo ln -s $SMRT_ROOT/userdata /pbi
+mkdir SMRT_LINK_3.1
+mv * SMRT_LINK_3.1
 mkdir SMRT_Link && cd SMRT_Link
 unset PYTHONPATH
-SMRT_ROOT=/data7/lcy/zhongxm/tools/SMRT_Link/smrtlink_3.1
-mkdir /data7/lcy/zhongxm/tools/SMRT_Link/data_root
-bash smrtlink_3.1.1.182868.run --rootdir $SMRT_ROOT
+SMRT_ROOT=/data7/lcy/zhongxm/tools/SMRT_Link/smrtlink_5.0.1
+#mkdir /data7/lcy/zhongxm/tools/SMRT_Link/data_root
+bash smrtlink_5.0.1.9585.run --rootdir $SMRT_ROOT
 sudo ln -s $SMRT_ROOT/userdata /pbi
+
 
 #4. Pbcc
 git clone https://github.com/PacificBiosciences/pbccs
@@ -188,8 +301,9 @@ pip install matplotlib
 #LD_LIBRARY_PATH=/data7/lcy/zhongxm/tools/boost/destDir/stage/lib:/data7/lcy/zhongxm/tools/zlib/destDir/lib:/data7/lcy/zhongxm/tools/gcc/destDir/lib64:/data7/lcy/zhongxm/tools/gcc/gmp/destDir/lib:/data7/lcy/zhongxm/tools/gcc/mpfr/destDir/lib:/data7/lcy/zhongxm/tools/gcc/mpc/destDir/lib:$LD_LIBRARY_PATH
 git clone git://github.com/matplotlib/matplotlib.git
 wget https://github.com/Illumina/manta/releases/download/v0.29.6/manta-0.29.6.centos5_x86_64.tar.bz2
-wget https://downloads.sourceforge.net/project/quast/quast-4.1.tar.gz
-ssh smp01
+#wget https://downloads.sourceforge.net/project/quast/quast-4.1.tar.gz
+wget https://downloads.sourceforge.net/project/quast/quast-4.5.tar.gz
+#ssh smp01
 #unset LD_LIBRARY_PATH
 #unset PYTHONPATH
 #source /data7/lcy/zhongxm/tools/myVirtualenv/bin/activate
@@ -201,17 +315,23 @@ cp -r myVirtualenv/lib/python2.7/site-packages/cycler* Python/lib/python2.7/site
 cp -r myVirtualenv/lib/python2.7/site-packages/pytz* Python/lib/python2.7/site-packages/
 cp -r myVirtualenv/lib/python2.7/site-packages/six** Python/lib/python2.7/site-packages/
 cp -r myVirtualenv/lib/python2.7/site-packages/dateutil* Python/lib/python2.7/site-packages/
-tar -xzf quast-4.1.tar.gz
-cd quast-4.1
-mkdir libs/manta/build
-cp ../manta-0.29.6.centos5_x86_64.tar.bz2 libs/manta/build/manta.tar.bz2
-sed -i '479,488d' libs/reads_analyzer.py
-sed -i '489,490d' libs/reads_analyzer.py
+#tar -xzf quast-4.1.tar.gz
+#cd quast-4.1
+tar -xzf quast-4.5.tar.gz
+cd quast-4.5
+#wget http://www.arb-silva.de/fileadmin/silva_databases/release_123/Exports/SILVA_123_SSURef_Nr99_tax_silva.fasta.gz
+#mv SILVA_123_SSURef_Nr99_tax_silva.fasta.gz quast_libs/silva 
+#cp ../source/manta-0.29.6.centos5_x86_64.tar.bz2 quast_libs/manta0.29.6/build/manta.tar.bz2
+./install_full.sh
+#mkdir libs/manta/build
+#cp ../manta-0.29.6.centos5_x86_64.tar.bz2 libs/manta/build/manta.tar.bz2
+#sed -i '479,488d' libs/reads_analyzer.py
+#sed -i '489,490d' libs/reads_analyzer.py
 #edit reads_analyzer.py by oundenting line 479,488
-python quast.py --test
-python quast.py --test-sv
+#python quast.py --test
+#python quast.py --test-sv
 cd -
-ln -s quast-4.1 quast
+ln -s quast-4.5 quast
 
 #9. MUMmer
 wget http://downloads.sourceforge.net/project/mummer/mummer/3.23/MUMmer3.23.tar.gz
@@ -220,7 +340,10 @@ cd MUMmer3.23
 make check
 #make install
 make install CPPFLAGS="-O3 -DSIXTYFOURBITS"
-sed -i '1i #!/data8/lcy01/bin/perl' mummerplot
+#sed -i '1i #!/data8/lcy01/bin/perl' mummerplot
+sed -i '1i #!/data7/lcy/zhongxm/tools/perl/bin/perl' mummerplot
+#sed -i "884s/defined//" mummerplot
+perl -i -pe 's/defined \(%/\(%/' mummerplot
 cd -
 ln -s MUMmer3.23 MUMer
 
@@ -385,3 +508,87 @@ tar -zxvf megacc-7.0.20-1.x86_64.tar.gz
 
 #21. SSPACE
 git clone https://github.com/nsoranzo/sspace_basic.git
+
+#22. readfq
+git clone https://github.com/billzt/readfq.git
+cd readfq
+gcc -lz -o kseq_fastq_base kseq_fastq_base.c
+
+#23. BWA
+wget --no-check-certificate https://sourceforge.net/projects/bio-bwa/files/bwa-0.7.15.tar.bz2
+tar -xvjf bwa-0.7.15.tar.bz2
+make 
+cd /data7/lcy/zhongxm/bin
+ln -s /data7/lcy/zhongxm/tools/bwa-0.7.15/bwa .
+
+#24. Samtools
+wget --no-check-certificate https://downloads.sourceforge.net/project/samtools/samtools/1.4/samtools-1.4.tar.bz2
+tar -xvjf samtools-1.4.tar.bz2
+cd samtools-1.4
+./configure --disable-lzma  --prefix=$PWD
+make
+make install
+cd ../
+ln -s samtools-1.4 samtools
+cd /data7/lcy/zhongxm/bin
+ln -s /data7/lcy/zhongxm/tools/samtools/bin/samtools .
+
+#25. bzip2
+mkdir bzip2 && cd bzip2
+wget http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz
+tar -zxvf bzip2-1.0.6.tar.gz
+mkdir destDir
+mv bzip2-1.0.6 srcDir && cd srcDir
+make
+make install PREFIX=${PWD/srcDir/destDir}
+
+#26. XZ
+mkdir XZ && cd XZ
+wget https://tukaani.org/xz/xz-5.2.3.tar.gz --no-check-certificate
+tar -zxvf xz-5.2.3.tar.gz
+mv xz-5.2.3 srcDir
+mkdir destDir
+mkdir objDir && cd objDir
+../srcDir/configure --prefix=${PWD/objDir/destDir}
+make -j 15
+make install
+
+#27. PCRE
+mkdir PCRE && cd PCRE
+wget https://ftp.pcre.org/pub/pcre/pcre-8.41.tar.gz --no-check-certificate
+tar -zxvf pcre-8.41.tar.gz
+mv pcre-8.41 srcDir
+mkdir destDir
+mkdir objDir && cd objDir
+../srcDir/configure --prefix=${PWD/objDir/destDir} --enable-utf8
+make -j 15
+make install
+
+#28. curl
+mkdir curl && cd curl
+wget wget https://curl.haxx.se/download/curl-7.57.0.tar.gz
+tar -zxvf curl-7.57.0.tar.gz
+mv curl-7.57.0 srcDir
+mkdir destDir
+mkdir objDir && cd objDir
+../srcDir/configure --prefix=${PWD/objDir/destDir}
+make -j 15
+make install
+
+
+#29. R
+wget https://cran.r-project.org/src/base/R-3/R-3.4.3.tar.gz
+tar -zxvf R-3.4.3.tar.gz
+cd R-3.4.3
+mkdir  srcDir
+mv ./* srcDir
+mkdir destDir objDir && cd objDir
+export PATH=/data7/lcy/zhongxm/tools/curl/destDir/bin:$PATH
+../srcDir/configure --prefix=${PWD/objDir/destDir} --disable-openmp LDFLAGS="-L/data7/lcy/zhongxm/tools/zlib/destDir/lib -L/data7/lcy/zhongxm/tools/bzip2/destDir/lib \
+	-L/data7/lcy/zhongxm/tools/XZ/destDir/lib -L/data7/lcy/zhongxm/tools/PCRE/destDir/lib -L/data7/lcy/zhongxm/tools/curl/destDir/lib" \
+	CPPFLAGS="-I/data7/lcy/zhongxm/tools/zlib/destDir/include -I/data7/lcy/zhongxm/tools/bzip2/destDir/include -I/data7/lcy/zhongxm/tools/XZ/destDir/include \
+	-I/data7/lcy/zhongxm/tools/PCRE/destDir/include -I/data7/lcy/zhongxm/tools/curl/destDir/include"
+make
+make install
+
+
