@@ -40,10 +40,13 @@ def parse_args(argv):
         help='read db file path')
     parser.add_argument(
         '--fofn', type=str,
-        help='file contains the path of all LAS file')
+        help='file contains the path of all LAS file to be processed in parallel')
     parser.add_argument(
         '--out_fn', default='nodes_overlap.txt',
         help='Output filename')
+    parser.add_argument(
+        '--n_core', type=int, default=4,
+        help='number of processes used for generating consensus; 0 for main process only')
     args = parser.parse_args(argv[1:])
     return args
 
