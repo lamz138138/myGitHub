@@ -25,34 +25,53 @@ def overlapFilter(readlines, max_diff, max_cov, min_cov, min_len, overlapCount):
     output_data = []
     current_q_id = None
     q_id = None
-    outputString = None
-    index = 0
+    outputString_5 = None
+    outputString_3 = None
+    index_5 = 0
+    index_3 = 0
     for line in readlines():
         line = line.strip().split()
         q_id, t_id = line[:2]
-        q_l = int(line[7])
+        q_s, q_e, q_l = int(line[5]), int(line[6]), int(line[7])
         t_l = int(line[11])
         if q_id in repeatNodes:
             if q_l < min_len or t_l < min_len:
                 continue
-            index += 1
             overlapLen = abs(int(line[2]))
             idt = line[3]
             if q_id != current_q_id:
                 if current_q_id is not None:
-                    output_data.append(outputString)
+                    output_data.append(outputString_5)
+                    output_data.append(outputString_3)
                 current_q_id = q_id
-                outputString = '%s%s%s%s%s%s' % (q_id, "\t", str(overlapLen), "(", idt, ")")
-                index = 1
-            elif index <= overlapCount:
-                if outputString is not None:
-                    outputString = '%s%s%s%s%s%s' % (outputString, "\t", str(overlapLen), "(", idt, ")")
-                else:
-                    outputString = '%s%s%s%s%s%s' % (q_id, "\t", str(overlapLen), "(", idt, ")")
+                if q_s == 0:
+                    outputString_5 = '%s%s%s%s%s%s%s%s' % (q_id, "\t", "5", "\t", str(overlapLen), "(", idt, ")")
+                elif q_e == q_l:
+                    outputString_3 = '%s%s%s%s%s%s%s%s' % (q_id, "\t", "3", "\t", str(overlapLen), "(", idt, ")")
+                index_5 = 1
+                index_3 = 1
             else:
-                continue
+                if q_s == 0:
+                    if index_5 <= overlapCount:
+                        if outputString_5 is not None:
+                            outputString_5 = '%s%s%s%s%s%s' % (outputString_5, "\t", str(overlapLen), "(", idt, ")")
+                        else:
+                            outputString_5 = '%s%s%s%s%s%s%s%s' % (q_id, "\t", "5", "\t", str(overlapLen), "(", idt, ")")
+                        index_5 += 1
+                    else:
+                        continue
+                elif q_e == q_l:
+                    if index_3 <= overlapCount:
+                        if outputString_3 is not None:
+                            outputString_3 = '%s%s%s%s%s%s' % (outputString_3, "\t", str(overlapLen), "(", idt, ")")
+                        else:
+                            outputString_3 = '%s%s%s%s%s%s%s%s' % (q_id, "\t", "3", "\t", str(overlapLen), "(", idt, ")")
+                        index_3 += 1
+                    else:
+                        continue
     if current_q_id in repeatNodes:         
-        output_data.append(outputString)
+        output_data.append(outputString_5)
+        output_data.append(outputString_3)
     return output_data
 
 def parse_args(argv):
