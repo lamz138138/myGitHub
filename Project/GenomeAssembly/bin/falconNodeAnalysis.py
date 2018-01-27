@@ -41,10 +41,9 @@ def overlapFilter(readlines, max_diff, max_cov, min_cov, min_len):
         q_id, t_id = line[:2]
         q_l = int(line[7])
         t_l = int(line[11])
-        if q_l < min_len or t_l < min_len:
-            overHangCount += 1
-            continue
         if q_id in endNodes:
+            if q_l < min_len or t_l < min_len:
+                continue
             if q_id != current_q_id:
                 if current_q_id is not None:
                     output_data.append("\t".join((str(current_q_id), str(overlapCount), str(repeatFilterCount), str(identityFilterCount), str(overHangCount))))
@@ -55,6 +54,7 @@ def overlapFilter(readlines, max_diff, max_cov, min_cov, min_len):
                 overlapCount = 0
             overlapCount += 1
             if t_id not in nodeLinks.keys():
+                overHangCount += 1
                 continue
             left_count = int(nodeLinks[t_id]["5p"])
             right_count = int(nodeLinks[t_id]["3p"])
