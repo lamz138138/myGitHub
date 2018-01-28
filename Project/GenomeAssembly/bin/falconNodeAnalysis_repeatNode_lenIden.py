@@ -128,7 +128,8 @@ def main(argv=sys.argv):
                     inputs.append((run_overlapFilter, args.db_fn, fn, args.max_diff, args.max_cov, args.min_cov, args.min_len, args.overlap_count))
             for res in exe_pool.imap(io.run_func, inputs):
                 for l in res[1]:
-                    outs.write("".join(l) + "\n")
+                    if l is not None:
+                    	outs.write("".join(l) + "\n")
         os.rename(tmp_out_fn, args.out_fn)
     except:
         io.LOG('terminating ovlp_filter workers...')
