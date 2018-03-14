@@ -343,3 +343,26 @@ echo "output GC bases, total bases, GC percentage"
 bedtools nuc -fi /mnt/share/share/data/fna/hg19/all.fa -bed miRNA_target_merge_sorted.bed3 | awk 'BEGIN{FS=OFS="\t"} NR>1{GC+=$7+$8; sum+=$12;} END{print GC; print sum; printf("%.4f", GC/sum);}' # 0.4126
 
 
+# 10. mutation overlap
+mkdir mutation_overlap && cd mutation_overlap
+awk 'BEGIN{FS=OFS="\t"} $5=="TCGA-AA-3516-01A-02D-1554-10" && $1!~/GL/{print "chr"$1,$2-1,$2,$3,$4,$5;}' ../test.assignment.txt >sample_1.bed3+
+awk 'BEGIN{FS=OFS="\t"} $5=="TCGA-AA-A01R-01A-21D-A17O-10" && $1!~/GL/{print "chr"$1,$2-1,$2,$3,$4,$5;}' ../test.assignment.txt >sample_2.bed3+
+awk 'BEGIN{FS=OFS="\t"} $5=="TCGA-AD-6964-01A-11D-1924-10" && $1!~/GL/{print "chr"$1,$2-1,$2,$3,$4,$5;}' ../test.assignment.txt >sample_3.bed3+
+awk 'BEGIN{FS=OFS="\t"} $5=="TCGA-AD-A5EJ-01A-11D-A28G-10" && $1!~/GL/{print "chr"$1,$2-1,$2,$3,$4,$5;}' ../test.assignment.txt >sample_4.bed3+
+awk 'BEGIN{FS=OFS="\t"} $5=="TCGA-AZ-6601-01A-11D-1771-10" && $1!~/GL/{print "chr"$1,$2-1,$2,$3,$4,$5;}' ../test.assignment.txt >sample_5.bed3+
+sort -k1,1 -k2,2n sample_1.bed3+ >sample_1_sorted.bed3+
+sort -k1,1 -k2,2n sample_2.bed3+ >sample_2_sorted.bed3+
+sort -k1,1 -k2,2n sample_3.bed3+ >sample_3_sorted.bed3+
+sort -k1,1 -k2,2n sample_4.bed3+ >sample_4_sorted.bed3+
+sort -k1,1 -k2,2n sample_5.bed3+ >sample_5_sorted.bed3+
+bedtools intersect -wa -wb -a sample_1_sorted.bed3+ -b sample_2_sorted.bed3+ >intersect_1_2.tsv
+bedtools intersect -wa -wb -a sample_1_sorted.bed3+ -b sample_3_sorted.bed3+ >intersect_1_3.tsv
+bedtools intersect -wa -wb -a sample_1_sorted.bed3+ -b sample_4_sorted.bed3+ >intersect_1_4.tsv
+bedtools intersect -wa -wb -a sample_1_sorted.bed3+ -b sample_5_sorted.bed3+ >intersect_1_5.tsv
+bedtools intersect -wa -wb -a sample_2_sorted.bed3+ -b sample_3_sorted.bed3+ >intersect_2_3.tsv
+bedtools intersect -wa -wb -a sample_2_sorted.bed3+ -b sample_4_sorted.bed3+ >intersect_2_4.tsv
+bedtools intersect -wa -wb -a sample_2_sorted.bed3+ -b sample_5_sorted.bed3+ >intersect_2_5.tsv
+bedtools intersect -wa -wb -a sample_3_sorted.bed3+ -b sample_4_sorted.bed3+ >intersect_3_4.tsv
+bedtools intersect -wa -wb -a sample_3_sorted.bed3+ -b sample_5_sorted.bed3+ >intersect_3_5.tsv
+bedtools intersect -wa -wb -a sample_4_sorted.bed3+ -b sample_5_sorted.bed3+ >intersect_4_5.tsv
+
