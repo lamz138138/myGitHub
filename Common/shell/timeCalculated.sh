@@ -7,12 +7,19 @@ Description:
 Usage:
     timeCalculated.sh file_1 file_2
 Options:
-    
+    -h  Help
 EOF
     exit 0
 }
 
-[ $1 ] || usage
+[ $# -eq 0 ] && usage
+while getopts "h" OPTION
+ do
+  case $OPTION in
+        h) usage;;
+  esac
+ done
+shift $((OPTIND - 1))
 
 function show_time(){
     if [ $1 -lt 86400 ]; then 
