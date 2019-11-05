@@ -74,7 +74,7 @@ if(!is.null(enrich_data)){
   cat("GeneRatio (k/n): k is the number of genes within that list n, which are annotated to the node, while n is the size of the list of genes of interest.", file=file.path(opt$outputDir, "GO_MF.tsv"), sep="\n")
   cat("BgRatio (M/N): M is  the number of genes within that distribution that are annotated (either directly or indirectly) to the node of interest, while N is the total number of genes in the background distribution (universe).", file=file.path(opt$outputDir, "GO_MF.tsv"), sep="\n", append = TRUE)
 }
-jpeg(file=file.path(opt$outputDir, "GO_MF.jpg"))
+pdf(file=file.path(opt$outputDir, "GO_MF.pdf"))
 print(dotplot(enrich_data, x="GeneRatio", title="GO_MF"))
 dev.off()
 
@@ -92,7 +92,7 @@ if(!is.null(enrich_data)){
   cat("GeneRatio (k/n): k is the number of genes within that list n, which are annotated to the node, while n is the size of the list of genes of interest.", file=file.path(opt$outputDir, "GO_BP.tsv"), sep="\n")
   cat("BgRatio (M/N): M is  the number of genes within that distribution that are annotated (either directly or indirectly) to the node of interest, while N is the total number of genes in the background distribution (universe).", file=file.path(opt$outputDir, "GO_BP.tsv"), sep="\n", append = TRUE)
 }
-jpeg(file=file.path(opt$outputDir, "GO_BP.jpg"))
+pdf(file=file.path(opt$outputDir, "GO_BP.pdf"))
 print(dotplot(enrich_data, x="GeneRatio", title="GO_BP"))
 dev.off()
   
@@ -110,7 +110,7 @@ if(!is.null(enrich_data)){
   cat("GeneRatio (k/n): k is the number of genes within that list n, which are annotated to the node, while n is the size of the list of genes of interest.", file=file.path(opt$outputDir, "GO_CC.tsv"), sep="\n")
   cat("BgRatio (M/N): M is  the number of genes within that distribution that are annotated (either directly or indirectly) to the node of interest, while N is the total number of genes in the background distribution (universe).", file=file.path(opt$outputDir, "GO_CC.tsv"), sep="\n", append = TRUE)
 }
-jpeg(file=file.path(opt$outputDir, "GO_BP.jpg"))
+pdf(file=file.path(opt$outputDir, "GO_BP.pdf"))
 print(dotplot(enrich_data, x="GeneRatio", title="GO_BP"))
 
 
@@ -127,7 +127,7 @@ if(!is.null(enrich_data)){
   cat("GeneRatio (k/n): k is the number of genes within that list n, which are annotated to the node, while n is the size of the list of genes of interest.", file=file.path(opt$outputDir, "KEGG.tsv"), sep="\n")
   cat("BgRatio (M/N): M is  the number of genes within that distribution that are annotated (either directly or indirectly) to the node of interest, while N is the total number of genes in the background distribution (universe).", file=file.path(opt$outputDir, "KEGG.tsv"), sep="\n", append = TRUE)
 }
-jpeg(file=file.path(opt$outputDir, "KEGG.jpg"))
+pdf(file=file.path(opt$outputDir, "KEGG.pdf"))
 print(dotplot(enrich_data, x="GeneRatio", title="KEGG"))
 dev.off()
 
