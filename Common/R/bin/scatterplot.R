@@ -1,7 +1,6 @@
 #!/bin/env Rscript
 
 library("optparse")
-library("ggplot2")
 
 
 option_list <- list(
@@ -32,11 +31,13 @@ parser <- OptionParser(usage="%prog [options] input", option_list=option_list,
 
 args <- parse_args(parser, positional_arguments = 1)
 opt <- args$options
+
+library("ggplot2")
 input <- args$args[1]
 
 data=read.delim(file=input,row.names = 1, header=TRUE, check.names = FALSE)
 
-g<-ggplot(data, aes_string(x=opt$xColumn, y=opt$yColumn)) + geom_point()
+g<-ggplot(data, aes_string(x=opt$xColumn, y=opt$yColumn)) + geom_point() + expand_limits(x = 0, y = 0)
 
 if(opt$log){
   g<-g+scale_x_continuous(trans=opt$xTrans)+scale_y_continuous(trans=opt$yTrans)
@@ -57,3 +58,6 @@ if(opt$abline){
 jpeg(file=file.path(opt$outputDir, paste(opt$outputName, ".jpg", sep="")))
 print(g)
 #dev.off()
+
+# color point and solve overlap of point: geom_point(aes(colour=Type), position = position_jitter(h=0.05,w=0.15))
+# text according to criterial (Normal, Tumor and Symbol are column name): geom_text(aes(label=ifelse(Normal==0 & Tumor>2,as.character(Symbol),'')), position = position_jitter(h=0.05,w=0.15), hjust=0, vjust=0,size=2) 
